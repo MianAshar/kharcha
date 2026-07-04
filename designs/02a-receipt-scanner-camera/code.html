@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Kharcha - Receipt Scanner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-bright": "#fff8f7",
+                    "on-background": "#261819",
+                    "on-secondary-fixed": "#1a1a2e",
+                    "secondary-fixed-dim": "#c6c4df",
+                    "surface-container-highest": "#f7dcdd",
+                    "primary-fixed": "#ffdadb",
+                    "on-primary-container": "#fffbff",
+                    "on-tertiary-container": "#f6fff6",
+                    "on-tertiary-fixed-variant": "#005232",
+                    "on-primary-fixed-variant": "#91002b",
+                    "tertiary-fixed": "#84f9ba",
+                    "on-primary": "#ffffff",
+                    "secondary-container": "#e2e0fc",
+                    "surface": "#fff8f7",
+                    "on-surface-variant": "#5a4042",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface": "#261819",
+                    "error-container": "#ffdad6",
+                    "surface-container-low": "#fff0f0",
+                    "on-primary-fixed": "#40000e",
+                    "inverse-on-surface": "#ffeced",
+                    "background": "#fff8f7",
+                    "surface-tint": "#b71d3f",
+                    "tertiary-fixed-dim": "#67dc9f",
+                    "secondary": "#5d5c74",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#63627a",
+                    "tertiary-container": "#008655",
+                    "on-tertiary-fixed": "#002111",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#45455b",
+                    "inverse-surface": "#3d2c2d",
+                    "secondary-fixed": "#e2e0fc",
+                    "on-error-container": "#93000a",
+                    "primary-container": "#d63653",
+                    "tertiary": "#006a42",
+                    "outline": "#8e7071",
+                    "surface-container": "#ffe9e9",
+                    "inverse-primary": "#ffb2b7",
+                    "surface-container-high": "#fde2e2",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#eed4d4",
+                    "primary-fixed-dim": "#ffb2b7",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#f7dcdd",
+                    "outline-variant": "#e2bebf",
+                    "primary": "#b3193d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "gutter": "16px",
+                    "container-margin": "20px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "12px",
+                    "xs": "8px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "body-md": ["Inter"],
+                    "h2": ["Inter"],
+                    "label-bold": ["Inter"],
+                    "amount-md": ["Inter"],
+                    "h1": ["Inter"],
+                    "display-currency": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "h2": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-bold": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "amount-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                    "h1": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "display-currency": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .camera-overlay-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(0,0,0,0.6) 100%);
+        }
+        .shutter-ring {
+            border: 4px solid white;
+            padding: 4px;
+        }
+        .viewfinder-mask {
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-black overflow-hidden font-body-md text-on-surface">
+<!-- Full Screen Camera Viewport -->
+<main class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+<!-- Simulated Camera Feed -->
+<div class="absolute inset-0 z-0">
+<img alt="Receipt on a wooden table" class="w-full h-full object-cover grayscale-[20%]" data-alt="A high-resolution photograph of a white paper business receipt resting on a dark rustic wooden table. The lighting is bright and directional, creating realistic soft shadows. The overall aesthetic is professional and clean, following a modern light-mode financial application style with high-contrast surfaces. The composition is focused and clear, emphasizing the legibility of the transaction details on the receipt." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUysoYBxXC-Ivw0A49ZTmiDvBsB30AzRxXER3AUqwvgUjG1BLerh0HXRV_9PN9nYhcq-KRJCsSfLe1_5mvwMghWngZ4Dcyhq_QDInQriETFjP-i7yCBi4IgXCanzgSgNCshVa9I_NBHe2XJsAUmS0k0i7FGMW1I1Uf4halD1ctKTMFNYxU1noDTWMQQ7ygnulAwjaHaHn-VVpkQxzBMgdz_WcLsyi6VsaFym28KHY7vzWpatpB1VDKBoIPydt0Ri3PCN9m5tZTptE"/>
+</div>
+<!-- Camera Interface Overlays -->
+<div class="absolute inset-0 z-10 camera-overlay-gradient pointer-events-none"></div>
+<!-- Transparent Top Bar -->
+<header class="absolute top-0 left-0 w-full z-20 flex justify-between items-center px-container-margin py-lg pointer-events-auto">
+<button class="p-base text-white hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[28px]" data-icon="close">close</span>
+</button>
+<div class="flex items-center gap-md">
+<button class="p-base text-white hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[28px]" data-icon="flash_on">flash_on</span>
+</button>
+<button class="p-base text-white hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[28px]" data-icon="photo_library">photo_library</span>
+</button>
+</div>
+</header>
+<!-- Viewfinder / Scanning Guide -->
+<div class="relative z-20 w-4/5 aspect-[3/4] max-w-sm flex flex-col items-center justify-center pointer-events-none">
+<!-- The Viewfinder Rectangle -->
+<div class="absolute inset-0 border-2 border-white/60 border-dashed rounded-xl viewfinder-mask"></div>
+<!-- Guide Text -->
+<div class="bg-black/40 backdrop-blur-md px-md py-xs rounded-full border border-white/20">
+<p class="text-white font-label-bold text-label-bold">Position receipt within frame</p>
+</div>
+<!-- Corner Indicators -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
+</div>
+<!-- Bottom Controls -->
+<footer class="absolute bottom-0 left-0 w-full z-30 px-container-margin pb-xl pt-lg flex flex-col items-center pointer-events-auto">
+<!-- Auto-Detect Toggle -->
+<div class="mb-lg bg-black/50 backdrop-blur-sm rounded-full px-md py-xs flex items-center gap-xs border border-white/10">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-white text-[12px] font-bold uppercase tracking-wider">Auto-Detect ON</span>
+</div>
+<div class="w-full flex items-center justify-around">
+<!-- Thumbnail of last scan -->
+<div class="w-12 h-12 rounded-lg border-2 border-white/40 overflow-hidden opacity-80">
+<img alt="Last receipt scan" class="w-full h-full object-cover" data-alt="A small, blurry thumbnail showing a white piece of paper with black text on a dark background. The image represents a recently scanned document or receipt in a financial application's history. The style is minimalist and clean, consistent with a high-velocity utility app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyN0Fq_QFYSga9zH-f-yjyM0BT3WfwcFbMu0vl42FV-hxPwf0bX_Etx-v8BAmUMsFiXsEONHPgDNcywcttBD4BkCqTDavhX3jO3g_xYcehqIB2J73HjVJ3zbNvLT6KzdDZZxM4XuWgoTgQs0wDxoD1Dsxst-4ngshj0vosRyAwHIvoDzxP4IWQOwJbFQj5YP1Atf-oIxlPO6YH2jD6s-KEIvden0_Q7y8st0q0_Bp6qmHFE6muZEhV2pH_ja-SsmZyF4nyJguZL6s"/>
+</div>
+<!-- Shutter Button -->
+<button class="shutter-ring rounded-full active:scale-95 transition-transform">
+<div class="w-16 h-16 bg-[#E94560] rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white text-[32px]" data-icon="document_scanner">document_scanner</span>
+</div>
+</button>
+<!-- Help Button -->
+<button class="w-12 h-12 flex items-center justify-center text-white/80 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<!-- Mode Selector -->
+<div class="mt-lg flex gap-xl">
+<button class="text-white/60 font-label-bold text-label-bold transition-colors">MANUAL</button>
+<button class="text-white font-label-bold text-label-bold border-b-2 border-primary pb-1">RECEIPT</button>
+<button class="text-white/60 font-label-bold text-label-bold transition-colors">INVOICE</button>
+</div>
+</footer>
+</main>
+<!-- Hidden System Shell Implementation (Required per Brand Anchors but suppressed for immersive camera) -->
+<!-- This structure remains in code for semantic integrity and potential transitions -->
+<div class="hidden">
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-surface-container shadow-lg rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span>Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary font-bold font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+<span>Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span>History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant font-label-caps text-label-caps">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</div>
+</nav>
+</div>
+</body></html>

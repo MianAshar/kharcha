@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kharcha - Expense Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#8e7071",
+                        "primary-fixed-dim": "#ffb2b7",
+                        "tertiary-container": "#008655",
+                        "on-primary-fixed-variant": "#91002b",
+                        "surface-container-highest": "#f7dcdd",
+                        "inverse-on-surface": "#ffeced",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#fff0f0",
+                        "inverse-surface": "#3d2c2d",
+                        "surface-container-high": "#fde2e2",
+                        "surface": "#fff8f7",
+                        "on-tertiary-container": "#f6fff6",
+                        "background": "#fff8f7",
+                        "secondary-fixed": "#e2e0fc",
+                        "inverse-primary": "#ffb2b7",
+                        "on-surface": "#261819",
+                        "on-primary-container": "#fffbff",
+                        "outline-variant": "#e2bebf",
+                        "secondary-container": "#e2e0fc",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#84f9ba",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#5d5c74",
+                        "on-secondary-fixed": "#1a1a2e",
+                        "tertiary": "#006a42",
+                        "primary": "#b3193d",
+                        "on-tertiary-fixed": "#002111",
+                        "on-secondary-fixed-variant": "#45455b",
+                        "on-error": "#ffffff",
+                        "on-background": "#261819",
+                        "surface-variant": "#f7dcdd",
+                        "on-secondary-container": "#63627a",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#fff8f7",
+                        "primary-fixed": "#ffdadb",
+                        "surface-container": "#ffe9e9",
+                        "on-surface-variant": "#5a4042",
+                        "surface-dim": "#eed4d4",
+                        "error": "#ba1a1a",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#b71d3f",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#005232",
+                        "tertiary-fixed-dim": "#67dc9f",
+                        "secondary-fixed-dim": "#c6c4df",
+                        "on-primary-fixed": "#40000e",
+                        "coral-accent": "#E94560"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "sm": "12px",
+                        "xs": "8px",
+                        "lg": "24px",
+                        "container-margin": "20px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-currency": ["Inter"],
+                        "amount-md": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "h2": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-currency": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "amount-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "h1": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "h2": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F9FA;
+            color: #1A1A2E;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-card {
+            background-color: #FFFFFF;
+            box-shadow: 0px 4px 12px rgba(26, 26, 46, 0.05);
+            border-radius: 16px;
+        }
+        .matched-badge {
+            background-color: rgba(0, 106, 66, 0.1);
+            color: #006a42;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md">
+<!-- Top App Bar -->
+<header class="bg-surface sticky top-0 z-50 flex justify-between items-center w-full px-container-margin h-16">
+<div class="flex items-center gap-4">
+<button class="hover:bg-surface-container-highest transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<h1 class="font-h2 text-h2 text-on-surface">Expense Detail</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="hover:bg-surface-container-highest transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-on-surface">share</span>
+</button>
+</div>
+</header>
+<main class="flex-grow px-container-margin py-lg space-y-md">
+<!-- Header Section -->
+<section class="flex items-center gap-md">
+<div class="w-[60px] h-[60px] rounded-xl overflow-hidden flex-shrink-0 bg-surface-container shadow-sm border border-outline-variant">
+<img alt="Receipt thumbnail" class="w-full h-full object-cover" data-alt="A close-up shot of a crumpled supermarket receipt lying on a clean white countertop. The lighting is soft and natural, emphasizing the texture of the paper and the faint ink printing. This minimalist image uses a bright light-mode aesthetic with neutral colors to focus on financial record-keeping utility." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcuK9ZjpjZSfU1C3_hNyGLw3hzCc8iSJnvXcEsOV9JWZKhq6fF7-0MSMf4x1zK9rL4c2ytXA7pOD-9t68OUFizfNFv2h0QdY682HjmheXRnODHaV1YISxWU-jCufjKmeP4YaO_m5zC7RfI6qGr4ap6jtqww9XbqGwEDJhWYa1jUkDKWoWIeld3g9CCFFWvCxIaUOHL6KrNuWT_WH6-VU4fBvIlW1uamXdJauPMXXMbb6YoBZMd3KZrs7a4IheqACL0YhGmcGqrBzY"/>
+</div>
+<div>
+<h2 class="font-h2 text-h2 text-on-surface">Metro Cash &amp; Carry</h2>
+<div class="mt-1">
+<span class="bg-surface-container-low text-on-surface-variant px-xs py-[2px] rounded-full text-xs font-label-bold flex items-center w-fit border border-outline-variant">
+<span class="mr-1">🛒</span> Grocery
+                    </span>
+</div>
+</div>
+</section>
+<!-- Details Card -->
+<section class="tonal-card p-lg">
+<div class="grid grid-cols-2 gap-y-md gap-x-gutter">
+<div>
+<p class="text-on-surface-variant text-xs font-label-bold mb-1">Amount</p>
+<p class="font-amount-md text-[20px] text-coral-accent">Rs 3,200</p>
+</div>
+<div>
+<p class="text-on-surface-variant text-xs font-label-bold mb-1">Date</p>
+<p class="font-body-md text-on-surface">May 7, 2026</p>
+</div>
+<div>
+<p class="text-on-surface-variant text-xs font-label-bold mb-1">Time</p>
+<p class="font-body-md text-on-surface">2:30 PM</p>
+</div>
+<div>
+<p class="text-on-surface-variant text-xs font-label-bold mb-1">Paid With</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-secondary">account_balance_wallet</span>
+<p class="font-body-md text-on-surface">HBL ••1234</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Line Items Section -->
+<section class="space-y-sm">
+<h3 class="font-label-bold text-on-surface-variant px-1 uppercase tracking-wider text-xs">Items</h3>
+<div class="tonal-card overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest border-b border-surface-container">
+<th class="py-md px-md font-label-bold text-xs text-on-surface-variant">Item Name</th>
+<th class="py-md px-md font-label-bold text-xs text-on-surface-variant text-center">Qty</th>
+<th class="py-md px-md font-label-bold text-xs text-on-surface-variant text-right">Price</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<tr>
+<td class="py-md px-md text-on-surface">Fresh Milk 1L</td>
+<td class="py-md px-md text-on-surface text-center">2</td>
+<td class="py-md px-md text-on-surface text-right font-amount-md">Rs 480</td>
+</tr>
+<tr>
+<td class="py-md px-md text-on-surface">Wheat Flour 5kg</td>
+<td class="py-md px-md text-on-surface text-center">1</td>
+<td class="py-md px-md text-on-surface text-right font-amount-md">Rs 1,200</td>
+</tr>
+<tr>
+<td class="py-md px-md text-on-surface">Cooking Oil 3L</td>
+<td class="py-md px-md text-on-surface text-center">1</td>
+<td class="py-md px-md text-on-surface text-right font-amount-md">Rs 1,420</td>
+</tr>
+<tr>
+<td class="py-md px-md text-on-surface">Carry Bag</td>
+<td class="py-md px-md text-on-surface text-center">1</td>
+<td class="py-md px-md text-on-surface text-right font-amount-md">Rs 100</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Matched Transaction Card -->
+<section class="space-y-sm">
+<h3 class="font-label-bold text-on-surface-variant px-1 uppercase tracking-wider text-xs">Bank Sync</h3>
+<div class="tonal-card p-md border-l-4 border-tertiary">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="font-label-bold text-on-surface">Linked Bank Transaction</p>
+<p class="text-xs text-on-surface-variant">Ref: 987654321</p>
+</div>
+<span class="matched-badge px-3 py-1 rounded-full text-xs font-bold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        Matched
+                    </span>
+</div>
+<div class="flex justify-between items-end mt-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">account_balance</span>
+</div>
+<div>
+<p class="font-label-bold text-on-surface">HBL</p>
+<p class="text-xs text-on-surface-variant">May 7, 2026</p>
+</div>
+</div>
+<p class="font-amount-md text-on-surface">Rs 3,200</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Actions Footer -->
+<footer class="bg-surface px-container-margin py-md flex gap-md border-t border-surface-container">
+<button class="flex-1 border-1.5 border-outline text-on-surface py-3 rounded-full font-label-bold hover:bg-surface-container-highest transition-all flex items-center justify-center gap-2 border-[1.5px]">
+<span class="material-symbols-outlined text-md">edit</span>
+            Edit
+        </button>
+<button class="flex-1 border-1.5 border-error text-error py-3 rounded-full font-label-bold hover:bg-error/5 transition-all flex items-center justify-center gap-2 border-[1.5px]">
+<span class="material-symbols-outlined text-md">delete</span>
+            Delete
+        </button>
+</footer>
+</body></html>

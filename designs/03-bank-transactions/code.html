@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kharcha - Transactions Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#84f9ba",
+                        "tertiary": "#006a42",
+                        "on-primary-fixed": "#40000e",
+                        "secondary": "#5d5c74",
+                        "secondary-fixed-dim": "#c6c4df",
+                        "secondary-container": "#e2e0fc",
+                        "inverse-surface": "#3d2c2d",
+                        "on-background": "#261819",
+                        "inverse-primary": "#ffb2b7",
+                        "surface-dim": "#eed4d4",
+                        "inverse-on-surface": "#ffeced",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005232",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#002111",
+                        "primary-fixed-dim": "#ffb2b7",
+                        "on-tertiary-container": "#f6fff6",
+                        "on-secondary-container": "#63627a",
+                        "secondary-fixed": "#e2e0fc",
+                        "outline": "#8e7071",
+                        "on-surface": "#261819",
+                        "on-secondary-fixed": "#1a1a2e",
+                        "background": "#fff8f7",
+                        "primary-container": "#d63653",
+                        "on-error": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#ffe9e9",
+                        "surface-variant": "#f7dcdd",
+                        "surface": "#fff8f7",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#67dc9f",
+                        "primary-fixed": "#ffdadb",
+                        "surface-container-highest": "#f7dcdd",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#008655",
+                        "surface-bright": "#fff8f7",
+                        "primary": "#b3193d",
+                        "outline-variant": "#e2bebf",
+                        "surface-container-high": "#fde2e2",
+                        "on-surface-variant": "#5a4042",
+                        "on-secondary-fixed-variant": "#45455b",
+                        "on-primary-fixed-variant": "#91002b",
+                        "surface-container-low": "#fff0f0",
+                        "surface-tint": "#b71d3f",
+                        "on-primary-container": "#fffbff",
+                        "brand-coral": "#E94560",
+                        "bank-hbl": "#005B96",
+                        "bank-mzn": "#228B22"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "container-margin": "20px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xs": "8px",
+                        "base": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-currency": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "h1": ["Inter"],
+                        "amount-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "h2": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-currency": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-bold": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "amount-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "h2": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F8F9FA;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .transaction-card {
+            background: #FFFFFF;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .custom-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="pb-28">
+<!-- Top AppBar -->
+<header class="bg-[#F8F9FA] sticky top-0 z-50 flex justify-between items-center w-full px-container-margin h-16">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface" data-icon="account_circle">account_circle</span>
+<h1 class="font-h2 text-h2 text-on-surface">Transactions</h1>
+</div>
+<button class="p-2 hover:bg-surface-container-highest transition-colors rounded-full">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</button>
+</header>
+<!-- Filter Pills (Horizontal Scroll) -->
+<nav class="flex overflow-x-auto gap-3 px-container-margin py-4 custom-scrollbar sticky top-16 bg-[#F8F9FA]/95 backdrop-blur-sm z-40">
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-brand-coral text-white font-label-bold text-label-bold shadow-sm">All</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-bold text-label-bold">Unmatched</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-bold text-label-bold">Debits</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-white border border-outline-variant text-on-surface-variant font-label-bold text-label-bold">Credits</button>
+</nav>
+<!-- Transaction Feed -->
+<main class="px-container-margin space-y-4">
+<!-- Transaction Item 1: Matched -->
+<div class="transaction-card p-4 rounded-xl flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-bank-hbl/10 flex items-center justify-center text-bank-hbl font-bold text-sm">
+                HBL
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-bold text-on-surface truncate">Spotify Premium</p>
+<div class="flex items-center gap-1.5 mt-0.5 text-on-surface-variant text-[11px]">
+<span>Oct 24, 11:30 AM</span>
+<span>•</span>
+<span>📧</span>
+</div>
+</div>
+<div class="text-right">
+<p class="font-amount-md text-amount-md text-error">-Rs. 599.00</p>
+<div class="mt-1.5 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold">Matched</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Item 2: Suggested -->
+<div class="transaction-card p-4 rounded-xl flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-bank-mzn/10 flex items-center justify-center text-bank-mzn font-bold text-sm">
+                MZN
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-bold text-on-surface truncate">Shell Fuel Mart - Clifton</p>
+<div class="flex items-center gap-1.5 mt-0.5 text-on-surface-variant text-[11px]">
+<span>Oct 23, 09:15 PM</span>
+<span>•</span>
+<span>💬</span>
+</div>
+</div>
+<div class="text-right">
+<p class="font-amount-md text-amount-md text-error">-Rs. 4,200.00</p>
+<div class="mt-1.5 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold">Suggested</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Item 3: Credit Unmatched -->
+<div class="transaction-card p-4 rounded-xl flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-bank-hbl/10 flex items-center justify-center text-bank-hbl font-bold text-sm">
+                SC
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<div class="min-w-0 flex-1">
+<p class="font-label-bold text-on-surface truncate">Salary - Tech Solutions</p>
+<div class="flex items-center gap-1.5 mt-0.5 text-on-surface-variant text-[11px]">
+<span>Oct 22, 08:00 AM</span>
+<span>•</span>
+<span>📧</span>
+</div>
+</div>
+<div class="text-right ml-2">
+<p class="font-amount-md text-amount-md text-tertiary">+Rs. 185,000</p>
+<div class="mt-1.5 flex items-center justify-end gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant text-[10px] font-bold">Unmatched</span>
+<button class="px-2.5 py-0.5 rounded border border-primary text-primary text-[10px] font-bold hover:bg-primary/5">Match</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Item 4: Unmatched -->
+<div class="transaction-card p-4 rounded-xl flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-bank-hbl/10 flex items-center justify-center text-bank-hbl font-bold text-sm">
+                HBL
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<div class="min-w-0 flex-1">
+<p class="font-label-bold text-on-surface truncate">PandaMart Order #8273</p>
+<div class="flex items-center gap-1.5 mt-0.5 text-on-surface-variant text-[11px]">
+<span>Oct 22, 02:45 PM</span>
+<span>•</span>
+<span>💬</span>
+</div>
+</div>
+<div class="text-right ml-2">
+<p class="font-amount-md text-amount-md text-error">-Rs. 1,450.00</p>
+<div class="mt-1.5 flex items-center justify-end gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-variant text-on-surface-variant text-[10px] font-bold">Unmatched</span>
+<button class="px-2.5 py-0.5 rounded border border-primary text-primary text-[10px] font-bold hover:bg-primary/5">Match</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Item 5: Matched -->
+<div class="transaction-card p-4 rounded-xl flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-bank-mzn/10 flex items-center justify-center text-bank-mzn font-bold text-sm">
+                UBR
+            </div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label-bold text-on-surface truncate">Uber Ride - Office</p>
+<div class="flex items-center gap-1.5 mt-0.5 text-on-surface-variant text-[11px]">
+<span>Oct 21, 09:05 AM</span>
+<span>•</span>
+<span>📧</span>
+</div>
+</div>
+<div class="text-right">
+<p class="font-amount-md text-amount-md text-error">-Rs. 320.00</p>
+<div class="mt-1.5 flex justify-end">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold">Matched</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-6 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="home">home</span>
+<span class="text-[10px] font-medium mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="document_scanner">document_scanner</span>
+<span class="text-[10px] font-medium mt-1">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-[24px] fill-1" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="text-[10px] font-bold mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="settings">settings</span>
+<span class="text-[10px] font-medium mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

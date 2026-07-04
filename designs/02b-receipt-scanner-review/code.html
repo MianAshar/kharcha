@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kharcha - Review Receipt</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-bright": "#fff8f7",
+                      "on-background": "#261819",
+                      "on-secondary-fixed": "#1a1a2e",
+                      "secondary-fixed-dim": "#c6c4df",
+                      "surface-container-highest": "#f7dcdd",
+                      "primary-fixed": "#ffdadb",
+                      "on-primary-container": "#fffbff",
+                      "on-tertiary-container": "#f6fff6",
+                      "on-tertiary-fixed-variant": "#005232",
+                      "on-primary-fixed-variant": "#91002b",
+                      "tertiary-fixed": "#84f9ba",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#e2e0fc",
+                      "surface": "#fff8f7",
+                      "on-surface-variant": "#5a4042",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#261819",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#fff0f0",
+                      "on-primary-fixed": "#40000e",
+                      "inverse-on-surface": "#ffeced",
+                      "background": "#fff8f7",
+                      "surface-tint": "#b71d3f",
+                      "tertiary-fixed-dim": "#67dc9f",
+                      "secondary": "#5d5c74",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#63627a",
+                      "tertiary-container": "#008655",
+                      "on-tertiary-fixed": "#002111",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#45455b",
+                      "inverse-surface": "#3d2c2d",
+                      "secondary-fixed": "#e2e0fc",
+                      "on-error-container": "#93000a",
+                      "primary-container": "#d63653",
+                      "tertiary": "#006a42",
+                      "outline": "#8e7071",
+                      "surface-container": "#ffe9e9",
+                      "inverse-primary": "#ffb2b7",
+                      "surface-container-high": "#fde2e2",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#eed4d4",
+                      "primary-fixed-dim": "#ffb2b7",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#f7dcdd",
+                      "outline-variant": "#e2bebf",
+                      "primary": "#b3193d",
+                      "warning-custom": "#F0A500"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "gutter": "16px",
+                      "container-margin": "20px",
+                      "xl": "32px",
+                      "lg": "24px",
+                      "sm": "12px",
+                      "xs": "8px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "h2": ["Inter"],
+                      "label-bold": ["Inter"],
+                      "amount-md": ["Inter"],
+                      "h1": ["Inter"],
+                      "display-currency": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "h2": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-bold": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                      "amount-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                      "h1": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "display-currency": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #F8F9FA;
+        }
+        .tonal-card {
+            background-color: #FFFFFF;
+            box-shadow: 0px 4px 12px rgba(26, 26, 46, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-md text-on-background min-h-screen pb-24">
+<!-- Top Navigation Anchor (Shared Component) -->
+<header class="bg-surface dark:bg-surface fixed top-0 left-0 w-full z-50 flex justify-between items-center w-full px-container-margin h-16">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-primary text-headline-lg">arrow_back</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary">Kharcha</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</div>
+</header>
+<main class="mt-20 px-container-margin space-y-md"><!-- New Header with Thumbnail and Merchant -->
+<section class="flex items-center gap-md py-sm">
+<img alt="Receipt Thumbnail" class="w-[60px] h-[60px] object-cover rounded-lg border border-outline-variant shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTqOtc4OPZn9MGNuH3yabW7nrTXisFDzBxyvIXStlSVLj_oqxE_1sPLyxqUNicodL4LvvdWIVjiY_R8gqrDUGsUcyCPttIwcii7G0DN_Af568Wu8RpUYFoILUK_LrV4CAk97URGNw-EmiL6FBul4OAyWrpbJaiPhGZrWuY-FTIMeUwcrNBvSvFm98BKP_hQ6Te9BMg2nvnTUSOaSZNPrAx5JtAkVmYXorilXehXWFCimu95IrSjTPDazvt68787drY3i00FUCoKTE"/>
+<div class="flex-1">
+<p class="text-on-surface-variant text-label-bold">Merchant</p>
+<h2 class="text-h2 font-bold text-on-surface">Metro Cash &amp; Carry</h2>
+</div>
+</section>
+<!-- Extraction Warning Banner -->
+<div class="bg-warning-custom/10 border-l-4 border-warning-custom p-md rounded-lg flex items-center gap-md">
+<span class="material-symbols-outlined text-warning-custom" style="font-variation-settings: 'FILL' 1;">warning</span>
+<p class="text-on-background font-label-bold">Some fields may need correction</p>
+</div>
+<!-- Form Canvas -->
+<div class="tonal-card p-lg rounded-xl space-y-lg">
+<!-- Category & Amount Row -->
+<div class="grid grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="text-on-surface-variant text-label-bold font-label-bold">Category</label>
+<div class="relative">
+<select class="w-full appearance-none bg-white border border-outline-variant rounded-lg px-md py-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none font-body-md">
+<option selected="">🛒 Grocery</option>
+<option>🍴 Dining</option>
+<option>🚗 Transport</option>
+<option>⚡ Utilities</option>
+</select>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<div class="space-y-xs">
+<label class="text-on-surface-variant text-label-bold font-label-bold">Amount</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none font-amount-md text-primary font-bold" type="text" value="₨ 3,200"/>
+</div>
+</div>
+<!-- Date Row -->
+<div class="space-y-xs">
+<label class="text-on-surface-variant text-label-bold font-label-bold">Date</label>
+<div class="relative">
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none font-body-md" type="text" value="May 7, 2026"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">calendar_today</span>
+</div>
+</div>
+<!-- Paid With Section -->
+<div class="space-y-xs">
+<label class="text-on-surface-variant text-label-bold font-label-bold">Paid With</label>
+<div class="flex gap-sm overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+<button class="flex-shrink-0 px-md py-2 rounded-full border border-primary bg-primary-container text-on-primary-container font-label-bold">Cash</button>
+<button class="flex-shrink-0 px-md py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-bold whitespace-nowrap">HBL ••1234</button>
+<button class="flex-shrink-0 px-md py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-bold whitespace-nowrap">Meezan ••5678</button>
+</div>
+</div>
+<!-- Line Items Table (Expanded) -->
+<div class="border-t border-surface-container-high pt-md">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+<span class="font-label-bold text-on-background">Line Items (4)</span>
+</div>
+<table class="w-full text-sm">
+<thead>
+<tr class="text-left text-on-surface-variant border-b border-surface-container-low">
+<th class="pb-xs font-label-bold">Item Name</th>
+<th class="pb-xs font-label-bold text-center">Qty</th>
+<th class="pb-xs font-label-bold text-right">Price</th>
+</tr>
+</thead>
+<tbody class="text-on-background">
+<tr class="border-b border-surface-container-low">
+<td class="py-sm">Fresh Milk 1L</td>
+<td class="py-sm text-center">2</td>
+<td class="py-sm text-right font-label-bold">₨ 480</td>
+</tr>
+<tr class="border-b border-surface-container-low">
+<td class="py-sm">Wheat Flour 5kg</td>
+<td class="py-sm text-center">1</td>
+<td class="py-sm text-right font-label-bold">₨ 1,200</td>
+</tr>
+<tr class="border-b border-surface-container-low">
+<td class="py-sm">Cooking Oil 3L</td>
+<td class="py-sm text-center">1</td>
+<td class="py-sm text-right font-label-bold">₨ 1,420</td>
+</tr>
+<tr>
+<td class="py-sm">Carry Bag</td>
+<td class="py-sm text-center">1</td>
+<td class="py-sm text-right font-label-bold">₨ 100</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Sticky Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-container-margin bg-white/80 backdrop-blur-md z-40">
+<button class="w-full bg-[#E94560] text-white py-4 rounded-full font-label-bold font-bold text-lg hover:opacity-90 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-md">
+<span class="material-symbols-outlined">save</span>
+    Save Expense
+  </button>
+</div></main>
+<!-- Bottom Navigation Shell (Shared Component Logic - Suppressed because transactional task) -->
+<!-- The nav is suppressed to prioritize focus on the extraction correction journey. -->
+</body></html>

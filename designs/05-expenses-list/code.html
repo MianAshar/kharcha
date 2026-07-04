@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#c6c4df",
+                        "primary": "#b3193d",
+                        "on-tertiary-container": "#f6fff6",
+                        "on-secondary-fixed-variant": "#45455b",
+                        "on-primary-fixed": "#40000e",
+                        "tertiary": "#006a42",
+                        "surface-container-high": "#fde2e2",
+                        "secondary": "#5d5c74",
+                        "surface-variant": "#f7dcdd",
+                        "outline-variant": "#e2bebf",
+                        "outline": "#8e7071",
+                        "on-surface": "#261819",
+                        "inverse-primary": "#ffb2b7",
+                        "primary-fixed": "#ffdadb",
+                        "on-background": "#261819",
+                        "inverse-on-surface": "#ffeced",
+                        "secondary-container": "#e2e0fc",
+                        "on-primary-container": "#fffbff",
+                        "on-tertiary-fixed": "#002111",
+                        "on-secondary-container": "#63627a",
+                        "primary-fixed-dim": "#ffb2b7",
+                        "surface-container": "#ffe9e9",
+                        "surface-container-low": "#fff0f0",
+                        "on-tertiary-fixed-variant": "#005232",
+                        "on-primary-fixed-variant": "#91002b",
+                        "tertiary-container": "#008655",
+                        "on-surface-variant": "#5a4042",
+                        "primary-container": "#d63653",
+                        "on-secondary-fixed": "#1a1a2e",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed-dim": "#67dc9f",
+                        "inverse-surface": "#3d2c2d",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#eed4d4",
+                        "surface": "#fff8f7",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed": "#84f9ba",
+                        "surface-bright": "#fff8f7",
+                        "surface-tint": "#b71d3f",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#e2e0fc",
+                        "background": "#fff8f7",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#f7dcdd",
+                        "brand-coral": "#E94560"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "24px",
+                        "container-margin": "20px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "xs": "8px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Inter"],
+                        "h1": ["Inter"],
+                        "body-md": ["Inter"],
+                        "amount-md": ["Inter"],
+                        "display-currency": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "h2": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "h1": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "amount-md": ["16px", {"lineHeight": "24px", "fontWeight": "700"}],
+                        "display-currency": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-bold": ["14px", {"lineHeight": "20px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #F8F9FA; font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface flex justify-between items-center px-container-margin h-16">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-highest transition-colors opacity-80 active:opacity-100">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</button>
+<h1 class="font-bold text-headline-lg font-headline-lg text-primary">All Expenses</h1>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container-highest transition-colors opacity-80 active:opacity-100">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="pt-16 pb-32">
+<!-- Search Section -->
+<div class="px-container-margin mt-md">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full h-12 pl-12 pr-4 bg-white border border-outline-variant rounded-xl focus:outline-none focus:ring-1.5 focus:ring-brand-coral focus:border-brand-coral transition-all text-body-md shadow-sm" placeholder="Search merchant, category..." type="text"/>
+</div>
+</div>
+<!-- Filter Chips Row -->
+<div class="mt-md flex items-center overflow-hidden">
+<div class="flex-1 overflow-x-auto no-scrollbar flex gap-2 px-container-margin items-center">
+<button class="px-6 py-2 bg-brand-coral text-white rounded-full font-label-bold text-label-bold flex-shrink-0">All</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Grocery</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Food</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Transport</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Fuel</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Shopping</button>
+<button class="px-6 py-2 bg-white border border-outline-variant text-on-surface-variant rounded-full font-label-bold text-label-bold flex-shrink-0 hover:bg-surface-container-low transition-colors">Services</button>
+</div>
+<div class="pr-container-margin pl-2 bg-gradient-to-l from-[#F8F9FA] via-[#F8F9FA] to-transparent">
+<button class="w-10 h-10 flex items-center justify-center bg-white border border-outline-variant rounded-full text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" data-icon="sort">sort</span>
+</button>
+</div>
+</div>
+<!-- Expense List Container -->
+<div class="mt-lg space-y-lg px-container-margin">
+<!-- Group: May 7, 2026 -->
+<section>
+<h3 class="text-on-surface-variant font-label-bold text-[12px] uppercase tracking-wider mb-sm">May 7, 2026</h3>
+<div class="space-y-sm">
+<!-- Row 1 -->
+<div class="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(26,26,46,0.05)] flex items-center gap-4 border border-transparent hover:border-brand-coral/20 transition-all cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 bg-surface-container-high rounded-full flex items-center justify-center text-xl">
+                            🛒
+                        </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-bold text-on-surface truncate">Hyperstar Supermarket</span>
+<span class="bg-surface-container-low text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/30">HBL</span>
+</div>
+<div class="text-on-surface-variant text-[13px] flex items-center gap-1">
+<span>Grocery</span>
+<span class="text-outline">•</span>
+<span>11:45 AM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-brand-coral font-amount-md text-amount-md">Rs 4,200</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(26,26,46,0.05)] flex items-center gap-4 border border-transparent hover:border-brand-coral/20 transition-all cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 bg-secondary-container rounded-full flex items-center justify-center text-xl">
+                            🍔
+                        </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-bold text-on-surface truncate">The Burger Joint</span>
+<span class="bg-surface-container-low text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/30">Cash</span>
+</div>
+<div class="text-on-surface-variant text-[13px] flex items-center gap-1">
+<span>Food</span>
+<span class="text-outline">•</span>
+<span>02:30 PM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-brand-coral font-amount-md text-amount-md">Rs 1,850</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Group: May 6, 2026 -->
+<section>
+<h3 class="text-on-surface-variant font-label-bold text-[12px] uppercase tracking-wider mb-sm">May 6, 2026</h3>
+<div class="space-y-sm">
+<!-- Row 3 -->
+<div class="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(26,26,46,0.05)] flex items-center gap-4 border border-transparent hover:border-brand-coral/20 transition-all cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 bg-surface-variant rounded-full flex items-center justify-center text-xl">
+                            ⛽
+                        </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-bold text-on-surface truncate">Shell Fuel Station</span>
+<span class="bg-surface-container-low text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/30">Meezan</span>
+</div>
+<div class="text-on-surface-variant text-[13px] flex items-center gap-1">
+<span>Fuel</span>
+<span class="text-outline">•</span>
+<span>08:15 AM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-brand-coral font-amount-md text-amount-md">Rs 5,000</span>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(26,26,46,0.05)] flex items-center gap-4 border border-transparent hover:border-brand-coral/20 transition-all cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 bg-tertiary-fixed rounded-full flex items-center justify-center text-xl">
+                            💊
+                        </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-bold text-on-surface truncate">Medi-Care Pharmacy</span>
+<span class="bg-surface-container-low text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/30">Cash</span>
+</div>
+<div class="text-on-surface-variant text-[13px] flex items-center gap-1">
+<span>Health</span>
+<span class="text-outline">•</span>
+<span>06:40 PM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-brand-coral font-amount-md text-amount-md">Rs 840</span>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(26,26,46,0.05)] flex items-center gap-4 border border-transparent hover:border-brand-coral/20 transition-all cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 bg-primary-fixed rounded-full flex items-center justify-center text-xl">
+                            🚗
+                        </div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-bold text-on-surface truncate">Uber Ride</span>
+<span class="bg-surface-container-low text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-outline-variant/30">HBL</span>
+</div>
+<div class="text-on-surface-variant text-[13px] flex items-center gap-1">
+<span>Transport</span>
+<span class="text-outline">•</span>
+<span>09:20 PM</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-brand-coral font-amount-md text-amount-md">Rs 620</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Summary Footer -->
+<div class="mt-xl text-center">
+<p class="text-on-surface-variant text-label-bold font-label-bold opacity-70">
+                Showing 24 expenses · Total Rs 45,230
+            </p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-surface-container rounded-t-xl shadow-lg flex justify-around items-center px-4 py-3 pb-safe">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/20 rounded-xl transition-all p-2 group active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="text-label-caps font-label-caps">Home</span>
+</button>
+<!-- Scan -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/20 rounded-xl transition-all p-2 group active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="document_scanner">document_scanner</span>
+<span class="text-label-caps font-label-caps">Scan</span>
+</button>
+<!-- History (Active) -->
+<button class="flex flex-col items-center justify-center text-primary dark:text-primary font-bold hover:bg-surface-variant/20 rounded-xl transition-all p-2 group active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="text-label-caps font-label-caps">History</span>
+</button>
+<!-- Settings -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/20 rounded-xl transition-all p-2 group active:scale-90 transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="settings">settings</span>
+<span class="text-label-caps font-label-caps">Settings</span>
+</button>
+</nav>
+<!-- Sub-page indication: We maintain Shell because this is a primary view -->
+</body></html>

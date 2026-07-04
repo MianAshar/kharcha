@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "Kharcha",
+    "slug": "kharcha",
+    "version": "1.0.0",
+    "scheme": "kharcha",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF8F7"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kharcha.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.105328440332-is9us28rtod6ka9093s70cl0jrlajph0"
+            ]
+          }
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF8F7"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.kharcha.app",
+      "permissions": [
+        "android.permission.RECEIVE_SMS",
+        "android.permission.READ_SMS",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "com.googleusercontent.apps.105328440332-s34gf1e9lknrroqsobi7n51gu8iunia0"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-apple-authentication",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#B3193D",
+          "androidMode": "default"
+        }
+      ],
+      "./plugins/withSmsReceiver"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "60a56a09-0576-495f-862d-8ecc6ff456aa"
+      }
+    }
+  }
+}

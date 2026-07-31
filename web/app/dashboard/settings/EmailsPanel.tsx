@@ -16,18 +16,43 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
   async function handleSync() {
     setSyncing(true)
     setSyncResult(null)
+
+    // Snapshot which emails are active before syncing
+    const { data: before } = await supabase
+      .from('connected_emails')
+      .select('id, is_active')
+      .eq('user_id', userId)
+
     try {
       const { error } = await supabase.functions.invoke('parse-bank-email', {
         body: { user_id: userId },
       })
       if (error) throw error
-      setSyncResult('✓ Sync complete — refresh to see new transactions')
-      router.refresh()
     } catch (e: unknown) {
       setSyncResult('⚠ Sync failed: ' + (e instanceof Error ? e.message : 'unknown error'))
-    } finally {
       setSyncing(false)
+      return
     }
+
+    // Check if any active emails got disabled (= token expired)
+    const { data: after } = await supabase
+      .from('connected_emails')
+      .select('id, is_active, email_address')
+      .eq('user_id', userId)
+
+    const tokenExpired = (before ?? []).some(b => {
+      const a = (after ?? []).find(x => x.id === b.id)
+      return b.is_active && a && !a.is_active
+    })
+
+    if (tokenExpired) {
+      setSyncResult('⚠ Gmail token expired — please disconnect and reconnect your email account below')
+    } else {
+      setSyncResult('✓ Sync complete — refresh the Transactions page to see new data')
+    }
+
+    setSyncing(false)
+    router.refresh()
   }
 
   async function connectGmail() {

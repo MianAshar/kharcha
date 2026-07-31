@@ -36,6 +36,22 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
   const [matchLoading, setMatchLoading] = useState<string | null>(null)
   const [unmatchLoading, setUnmatchLoading] = useState(false)
   const [matchOpen, setMatchOpen] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const filteredGroups = search.trim()
+    ? groups
+        .map(group => ({
+          ...group,
+          items: group.items.filter(tx => {
+            const q = search.toLowerCase()
+            return (
+              tx.merchant_hint?.toLowerCase().includes(q) ||
+              tx.bank_name?.toLowerCase().includes(q)
+            )
+          }),
+        }))
+        .filter(group => group.items.length > 0)
+    : groups
 
   const fetchDrawerData = useCallback(async (tx: BankTransaction) => {
     setDrawerLoading(true)
@@ -104,9 +120,35 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
 
   return (
     <>
+      {/* Search */}
+      <div className="relative mb-6">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#877273' }}>🔍</span>
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search merchant or bank…"
+          className="w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm outline-none focus:border-[#E94560] bg-white"
+          style={{ borderColor: '#E5E7EB', color: '#1A1A2E' }}
+        />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm"
+            style={{ color: '#877273' }}
+          >✕</button>
+        )}
+      </div>
+
       {/* Grouped list */}
       <div className="space-y-4">
-        {groups.map(group => (
+        {filteredGroups.length === 0 ? (
+          <div className="bg-white rounded-2xl border p-12 text-center shadow-sm" style={{ borderColor: '#E5E7EB' }}>
+            <p className="text-3xl mb-2">🔍</p>
+            <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>No results for &quot;{search}&quot;</p>
+            <p className="text-xs mt-1" style={{ color: '#877273' }}>Try a different merchant or bank name</p>
+          </div>
+        ) : filteredGroups.map(group => (
           <div key={group.dateKey}>
             <div className="flex items-center gap-3 mb-2 px-1">
               <span className="text-xs font-semibold" style={{ color: '#877273' }}>{group.label}</span>

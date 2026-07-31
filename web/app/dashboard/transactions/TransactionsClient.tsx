@@ -1,0 +1,356 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { formatCurrency, formatDateTime, formatDateShort } from '@/lib/format'
+import { CATEGORY_MAP } from '@/lib/constants'
+import type { BankTransaction, Expense } from '@/types'
+
+interface Group {
+  dateKey: string
+  label: string
+  items: BankTransaction[]
+}
+
+interface DrawerData {
+  matchedExpense: Expense | null
+  unmatchedExpenses: {
+    id: string
+    merchant_name: string
+    amount: number
+    currency: string
+    expense_date: string
+    category: string
+    match_status: string
+  }[]
+}
+
+export default function TransactionsClient({ groups }: { groups: Group[] }) {
+  const router = useRouter()
+  const supabase = createClient()
+  const [selectedTx, setSelectedTx] = useState<BankTransaction | null>(null)
+  const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
+  const [drawerLoading, setDrawerLoading] = useState(false)
+  const [matchLoading, setMatchLoading] = useState<string | null>(null)
+  const [unmatchLoading, setUnmatchLoading] = useState(false)
+  const [matchOpen, setMatchOpen] = useState(false)
+
+  const fetchDrawerData = useCallback(async (tx: BankTransaction) => {
+    setDrawerLoading(true)
+    setDrawerData(null)
+    setMatchOpen(false)
+
+    const [matchedRes, unmatchedRes] = await Promise.all([
+      tx.matched_expense_id
+        ? supabase.from('expenses').select('*').eq('id', tx.matched_expense_id).single()
+        : Promise.resolve({ data: null }),
+      !tx.matched_expense_id && tx.transaction_type === 'debit'
+        ? supabase
+            .from('expenses')
+            .select('id, merchant_name, amount, currency, expense_date, category, match_status')
+            .in('match_status', ['unmatched', 'suggested'])
+            .order('expense_date', { ascending: false })
+            .limit(50)
+        : Promise.resolve({ data: [] }),
+    ])
+
+    setDrawerData({
+      matchedExpense: matchedRes.data ?? null,
+      unmatchedExpenses: (unmatchedRes.data ?? []) as DrawerData['unmatchedExpenses'],
+    })
+    setDrawerLoading(false)
+  }, [supabase])
+
+  useEffect(() => {
+    if (selectedTx) fetchDrawerData(selectedTx)
+  }, [selectedTx, fetchDrawerData])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSelectedTx(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  async function handleMatch(expenseId: string) {
+    if (!selectedTx) return
+    setMatchLoading(expenseId)
+    await supabase.from('bank_transactions').update({ matched_expense_id: expenseId }).eq('id', selectedTx.id)
+    await supabase.from('expenses').update({ transaction_id: selectedTx.id, match_status: 'manual' }).eq('id', expenseId)
+    setMatchLoading(null)
+    const updated = { ...selectedTx, matched_expense_id: expenseId }
+    setSelectedTx(updated)
+    router.refresh()
+    fetchDrawerData(updated)
+  }
+
+  async function handleUnmatch() {
+    if (!selectedTx || !drawerData?.matchedExpense) return
+    if (!confirm('Remove this match?')) return
+    setUnmatchLoading(true)
+    await supabase.from('bank_transactions').update({ matched_expense_id: null }).eq('id', selectedTx.id)
+    await supabase.from('expenses').update({ transaction_id: null, match_status: 'unmatched' }).eq('id', drawerData.matchedExpense.id)
+    setUnmatchLoading(false)
+    const updated = { ...selectedTx, matched_expense_id: null }
+    setSelectedTx(updated)
+    router.refresh()
+    fetchDrawerData(updated)
+  }
+
+  const isDebit = selectedTx?.transaction_type === 'debit'
+
+  return (
+    <>
+      {/* Grouped list */}
+      <div className="space-y-4">
+        {groups.map(group => (
+          <div key={group.dateKey}>
+            <div className="flex items-center gap-3 mb-2 px-1">
+              <span className="text-xs font-semibold" style={{ color: '#877273' }}>{group.label}</span>
+              <div className="flex-1 h-px" style={{ background: '#E5E7EB' }} />
+              <span className="text-xs" style={{ color: '#877273' }}>
+                {group.items.length} txn{group.items.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
+              {group.items.map((tx, i) => {
+                const isDebitRow = tx.transaction_type === 'debit'
+                const isMatched = !!tx.matched_expense_id
+                const isSelected = selectedTx?.id === tx.id
+                return (
+                  <button
+                    key={tx.id}
+                    onClick={() => setSelectedTx(isSelected ? null : tx)}
+                    className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors ${i > 0 ? 'border-t' : ''}`}
+                    style={{
+                      borderColor: '#F8F9FA',
+                      background: isSelected ? '#FFF5F7' : undefined,
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-white flex-shrink-0 transition-colors"
+                      style={{ background: isSelected ? '#E94560' : '#1A1A2E' }}
+                    >
+                      {tx.bank_name?.slice(0, 2).toUpperCase() ?? '??'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
+                        {tx.merchant_hint ?? tx.bank_name}
+                        {tx.account_last4 && (
+                          <span className="text-xs ml-1.5" style={{ color: '#877273' }}>···{tx.account_last4}</span>
+                        )}
+                      </p>
+                      <p className="text-xs" style={{ color: '#877273' }}>
+                        {new Date(tx.transaction_date).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                        {' · '}
+                        <span className="capitalize">{tx.source}</span>
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-bold" style={{ color: isDebitRow ? '#E94560' : '#00955F' }}>
+                        {isDebitRow ? '-' : '+'}{formatCurrency(tx.amount, tx.currency)}
+                      </p>
+                      <span className="text-xs" style={{ color: isMatched ? '#00955F' : '#877273' }}>
+                        {isMatched ? '✓ matched' : 'unmatched'}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Backdrop */}
+      {selectedTx && (
+        <div
+          className="fixed inset-0 z-40 bg-black/25 backdrop-blur-sm"
+          onClick={() => setSelectedTx(null)}
+        />
+      )}
+
+      {/* Drawer */}
+      <div
+        className="fixed top-0 right-0 z-50 h-full bg-white shadow-2xl flex flex-col"
+        style={{
+          width: '420px',
+          transform: selectedTx ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b flex-shrink-0" style={{ borderColor: '#E5E7EB' }}>
+          <h2 className="font-semibold" style={{ color: '#1A1A2E' }}>Transaction Details</h2>
+          <button
+            onClick={() => setSelectedTx(null)}
+            className="w-8 h-8 flex items-center justify-center rounded-full transition hover:bg-gray-100 text-base"
+            style={{ color: '#877273' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Body */}
+        {selectedTx && (
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {/* Amount + bank hero */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-lg flex-shrink-0"
+                  style={{ background: '#1A1A2E' }}
+                >
+                  {selectedTx.bank_name?.slice(0, 2).toUpperCase() ?? '??'}
+                </div>
+                <div>
+                  <p className="font-bold" style={{ color: '#1A1A2E' }}>{selectedTx.bank_name}</p>
+                  {selectedTx.merchant_hint && (
+                    <p className="text-sm" style={{ color: '#877273' }}>{selectedTx.merchant_hint}</p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold" style={{ color: isDebit ? '#E94560' : '#00955F' }}>
+                  {isDebit ? '-' : '+'}{formatCurrency(selectedTx.amount, selectedTx.currency)}
+                </p>
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-full capitalize"
+                  style={{
+                    background: isDebit ? '#FFF0F3' : '#F0FDF4',
+                    color: isDebit ? '#E94560' : '#00955F',
+                  }}
+                >
+                  {selectedTx.transaction_type}
+                </span>
+              </div>
+            </div>
+
+            {/* Detail grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl col-span-2" style={{ background: '#F8F9FA' }}>
+                <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Date & Time</p>
+                <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>{formatDateTime(selectedTx.transaction_date)}</p>
+              </div>
+              <div className="p-3 rounded-xl" style={{ background: '#F8F9FA' }}>
+                <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Source</p>
+                <p className="text-sm font-medium capitalize" style={{ color: '#1A1A2E' }}>{selectedTx.source}</p>
+              </div>
+              {selectedTx.account_last4 && (
+                <div className="p-3 rounded-xl" style={{ background: '#F8F9FA' }}>
+                  <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Account</p>
+                  <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>···{selectedTx.account_last4}</p>
+                </div>
+              )}
+              {selectedTx.balance_after !== null && (
+                <div className="p-3 rounded-xl" style={{ background: '#F8F9FA' }}>
+                  <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Balance After</p>
+                  <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
+                    {formatCurrency(selectedTx.balance_after, selectedTx.currency)}
+                  </p>
+                </div>
+              )}
+              {selectedTx.reference_number && (
+                <div className="p-3 rounded-xl col-span-2" style={{ background: '#F8F9FA' }}>
+                  <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Reference</p>
+                  <p className="text-sm font-mono" style={{ color: '#1A1A2E' }}>{selectedTx.reference_number}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Match / unmatched section */}
+            {drawerLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <span className="w-5 h-5 border-2 border-gray-200 border-t-[#E94560] rounded-full animate-spin" />
+              </div>
+            ) : drawerData?.matchedExpense ? (
+              <div className="rounded-2xl border p-4" style={{ borderColor: '#E5E7EB' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>Matched Expense</h3>
+                  <button
+                    onClick={handleUnmatch}
+                    disabled={unmatchLoading}
+                    className="text-xs px-3 py-1.5 rounded-lg border transition hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-50"
+                    style={{ borderColor: '#E5E7EB', color: '#877273' }}
+                  >
+                    {unmatchLoading ? '…' : 'Unmatch'}
+                  </button>
+                </div>
+                <Link
+                  href={`/dashboard/expenses/${drawerData.matchedExpense.id}`}
+                  className="flex items-center justify-between p-3 rounded-xl transition hover:opacity-90"
+                  style={{ background: '#F0FDF4' }}
+                >
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>{drawerData.matchedExpense.merchant_name}</p>
+                    <p className="text-xs" style={{ color: '#877273' }}>
+                      {drawerData.matchedExpense.category} · {drawerData.matchedExpense.expense_date}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold" style={{ color: '#E94560' }}>
+                    {formatCurrency(drawerData.matchedExpense.amount, drawerData.matchedExpense.currency)}
+                  </p>
+                </Link>
+              </div>
+            ) : isDebit && drawerData ? (
+              <div className="rounded-2xl border p-4" style={{ borderColor: '#E5E7EB' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold" style={{ color: '#1A1A2E' }}>Link to Expense</h3>
+                  <button
+                    onClick={() => setMatchOpen(v => !v)}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition"
+                    style={{ background: matchOpen ? '#F8F9FA' : '#E94560', color: matchOpen ? '#877273' : '#fff' }}
+                  >
+                    {matchOpen ? 'Cancel' : 'Match Expense'}
+                  </button>
+                </div>
+                {!matchOpen ? (
+                  <p className="text-xs" style={{ color: '#877273' }}>
+                    No expense matched yet. Click &quot;Match Expense&quot; to manually link one.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {drawerData.unmatchedExpenses.length === 0 ? (
+                      <p className="text-xs text-center py-4" style={{ color: '#877273' }}>No unmatched expenses found</p>
+                    ) : drawerData.unmatchedExpenses.map(exp => {
+                      const cat = CATEGORY_MAP[exp.category]
+                      return (
+                        <button
+                          key={exp.id}
+                          onClick={() => handleMatch(exp.id)}
+                          disabled={!!matchLoading}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl border text-left transition hover:border-[#E94560] hover:bg-red-50 disabled:opacity-50"
+                          style={{ borderColor: '#E5E7EB' }}
+                        >
+                          <span className="text-lg">{cat?.icon ?? '📦'}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{exp.merchant_name}</p>
+                            <p className="text-xs" style={{ color: '#877273' }}>{formatDateShort(exp.expense_date)}</p>
+                          </div>
+                          <p className="text-sm font-bold flex-shrink-0" style={{ color: '#E94560' }}>
+                            {matchLoading === exp.id ? '…' : formatCurrency(exp.amount, exp.currency)}
+                          </p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {/* Raw message */}
+            <div className="rounded-2xl border p-4" style={{ borderColor: '#E5E7EB' }}>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: '#1A1A2E' }}>Raw Message</h3>
+              <p className="text-xs font-mono whitespace-pre-wrap p-3 rounded-xl" style={{ background: '#F8F9FA', color: '#877273' }}>
+                {selectedTx.raw_message}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}

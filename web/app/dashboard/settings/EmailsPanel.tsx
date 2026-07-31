@@ -12,12 +12,14 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
   const [disconnecting, setDisconnecting] = useState<string | null>(null)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<string | null>(null)
+  const [showHistorical, setShowHistorical] = useState(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
-  async function handleSync() {
+  async function runSync(dateRange?: { date_from: string; date_to: string }) {
     setSyncing(true)
     setSyncResult(null)
 
-    // Snapshot which emails are active before syncing
     const { data: before } = await supabase
       .from('connected_emails')
       .select('id, is_active')
@@ -25,7 +27,7 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
 
     try {
       const { error } = await supabase.functions.invoke('parse-bank-email', {
-        body: { user_id: userId },
+        body: { user_id: userId, ...dateRange },
       })
       if (error) throw error
     } catch (e: unknown) {
@@ -34,10 +36,9 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
       return
     }
 
-    // Check if any active emails got disabled (= token expired)
     const { data: after } = await supabase
       .from('connected_emails')
-      .select('id, is_active, email_address')
+      .select('id, is_active')
       .eq('user_id', userId)
 
     const tokenExpired = (before ?? []).some(b => {
@@ -46,13 +47,23 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
     })
 
     if (tokenExpired) {
-      setSyncResult('⚠ Gmail token expired — please disconnect and reconnect your email account below')
+      setSyncResult('⚠ Gmail token expired — please disconnect and reconnect your email account')
     } else {
-      setSyncResult('✓ Sync complete — refresh the Transactions page to see new data')
+      setSyncResult('✓ Sync complete — check the Transactions page for new data')
     }
 
     setSyncing(false)
     router.refresh()
+  }
+
+  async function handleSyncNow() {
+    await runSync()
+  }
+
+  async function handleHistoricalSync() {
+    if (!dateFrom || !dateTo) return
+    await runSync({ date_from: dateFrom, date_to: dateTo })
+    setShowHistorical(false)
   }
 
   async function connectGmail() {
@@ -61,9 +72,7 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
     const CALLBACK_URI =
       'https://jvpkqiiycmpcelxqtact.supabase.co/functions/v1/gmail-oauth-callback'
 
-    // Encode userId + web origin into state so the edge function can redirect back
     const state = `${userId}|${window.location.origin}`
-
     const params = new URLSearchParams({
       client_id: GOOGLE_WEB_CLIENT_ID,
       redirect_uri: CALLBACK_URI,
@@ -92,6 +101,8 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
     router.refresh()
   }
 
+  const hasActiveEmails = emails.some(e => e.is_active)
+
   return (
     <div>
       {emails.length === 0 ? (
@@ -104,15 +115,16 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
         <div className="space-y-2 mb-4">
           {emails.map(email => (
             <div key={email.id} className="flex items-center gap-3 p-3 rounded-xl border" style={{ borderColor: '#E5E7EB' }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
-                style={{ background: '#F8F9FA' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#F8F9FA' }}>
                 {email.provider === 'gmail' ? '📧' : '📨'}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{email.email_address}</p>
                 <p className="text-xs capitalize" style={{ color: '#877273' }}>
                   {email.provider}
-                  {email.last_polled_at && ` · Last synced ${new Date(email.last_polled_at).toLocaleDateString()}`}
+                  {email.last_polled_at
+                    ? ` · Last synced ${new Date(email.last_polled_at).toLocaleDateString()}`
+                    : ' · Never synced'}
                 </p>
               </div>
               <button
@@ -135,6 +147,42 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
         </div>
       )}
 
+      {/* Historical sync panel */}
+      {showHistorical && hasActiveEmails && (
+        <div className="mb-4 p-4 rounded-xl border" style={{ borderColor: '#E5E7EB', background: '#F8F9FA' }}>
+          <p className="text-sm font-medium mb-3" style={{ color: '#1A1A2E' }}>Import emails from a date range</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div>
+              <label className="block text-xs mb-1" style={{ color: '#877273' }}>FROM</label>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                className="px-3 py-2 rounded-xl border text-sm outline-none focus:border-[#E94560] bg-white"
+                style={{ borderColor: '#E5E7EB' }} />
+            </div>
+            <div>
+              <label className="block text-xs mb-1" style={{ color: '#877273' }}>TO</label>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                className="px-3 py-2 rounded-xl border text-sm outline-none focus:border-[#E94560] bg-white"
+                style={{ borderColor: '#E5E7EB' }} />
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setShowHistorical(false)}
+                className="px-3 py-2 rounded-xl border text-sm transition hover:bg-white"
+                style={{ borderColor: '#E5E7EB', color: '#877273' }}>
+                Cancel
+              </button>
+              <button onClick={handleHistoricalSync} disabled={!dateFrom || !dateTo || syncing}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: '#E94560' }}>
+                {syncing ? 'Importing…' : 'Import'}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs mt-2" style={{ color: '#877273' }}>
+            Note: Gmail limits results to 100 emails per sync. For large ranges, run multiple syncs month by month.
+          </p>
+        </div>
+      )}
+
       {syncResult && (
         <p className="text-xs mb-3 px-1" style={{ color: syncResult.startsWith('✓') ? '#00955F' : '#E94560' }}>
           {syncResult}
@@ -154,19 +202,24 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
           Connect Gmail
         </button>
 
-        {emails.some(e => e.is_active) && (
-          <button onClick={handleSync} disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-            style={{ background: '#E94560' }}>
-            {syncing ? (
-              <>
-                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Syncing…
-              </>
-            ) : (
-              <>🔄 Sync Now</>
-            )}
-          </button>
+        {hasActiveEmails && (
+          <>
+            <button onClick={handleSyncNow} disabled={syncing}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+              style={{ background: '#E94560' }}>
+              {syncing ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Syncing…
+                </>
+              ) : <>🔄 Sync Now</>}
+            </button>
+            <button onClick={() => setShowHistorical(v => !v)} disabled={syncing}
+              className="px-4 py-2.5 rounded-xl border text-sm font-medium transition hover:bg-gray-50 disabled:opacity-50"
+              style={{ borderColor: '#E5E7EB', color: '#1A1A2E' }}>
+              📅 Import History
+            </button>
+          </>
         )}
       </div>
     </div>

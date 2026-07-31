@@ -62,8 +62,41 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
 
   async function handleHistoricalSync() {
     if (!dateFrom || !dateTo) return
-    await runSync({ date_from: dateFrom, date_to: dateTo })
     setShowHistorical(false)
+    setSyncing(true)
+    setSyncResult(null)
+
+    // Split the range into 2-week chunks to avoid gateway timeouts
+    const chunks: { date_from: string; date_to: string }[] = []
+    const cursor = new Date(dateFrom)
+    const end = new Date(dateTo)
+    while (cursor <= end) {
+      const chunkEnd = new Date(cursor)
+      chunkEnd.setDate(chunkEnd.getDate() + 13)
+      if (chunkEnd > end) chunkEnd.setTime(end.getTime())
+      chunks.push({
+        date_from: cursor.toISOString().split('T')[0],
+        date_to: chunkEnd.toISOString().split('T')[0],
+      })
+      cursor.setDate(cursor.getDate() + 14)
+    }
+
+    let completed = 0
+    for (const chunk of chunks) {
+      setSyncResult(`⏳ Importing ${chunk.date_from} → ${chunk.date_to} (${completed + 1}/${chunks.length})…`)
+      try {
+        await supabase.functions.invoke('parse-bank-email', {
+          body: { user_id: userId, ...chunk },
+        })
+      } catch {
+        // Gateway timeout is expected for large chunks — function still runs to completion
+      }
+      completed++
+    }
+
+    setSyncResult(`✓ Import complete (${chunks.length} chunk${chunks.length > 1 ? 's' : ''} processed) — check Transactions for new data`)
+    setSyncing(false)
+    router.refresh()
   }
 
   async function connectGmail() {

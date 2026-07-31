@@ -56,15 +56,25 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
   }
 
   async function connectGmail() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        scopes: 'https://www.googleapis.com/auth/gmail.readonly',
-        queryParams: { access_type: 'offline', prompt: 'consent' },
-      },
+    const GOOGLE_WEB_CLIENT_ID =
+      '105328440332-6e85m2dh2q6uelm0bomj3pjiqhr718fo.apps.googleusercontent.com'
+    const CALLBACK_URI =
+      'https://jvpkqiiycmpcelxqtact.supabase.co/functions/v1/gmail-oauth-callback'
+
+    // Encode userId + web origin into state so the edge function can redirect back
+    const state = `${userId}|${window.location.origin}`
+
+    const params = new URLSearchParams({
+      client_id: GOOGLE_WEB_CLIENT_ID,
+      redirect_uri: CALLBACK_URI,
+      response_type: 'code',
+      scope: 'openid email https://www.googleapis.com/auth/gmail.readonly',
+      access_type: 'offline',
+      prompt: 'select_account consent',
+      state,
     })
-    if (error) alert(error.message)
+
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   }
 
   async function handleToggle(id: string, currentActive: boolean) {

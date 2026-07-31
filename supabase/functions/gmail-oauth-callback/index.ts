@@ -10,12 +10,22 @@ const REDIRECT_URI =
 serve(async (req) => {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const userId = url.searchParams.get("state");
+  const rawState = url.searchParams.get("state");
   const error = url.searchParams.get("error");
+
+  // State format: "userId" (mobile) or "userId|https://weborigin" (web)
+  const [userId, webOrigin] = rawState ? rawState.split("|") : [null, null];
+
+  const successRedirect = webOrigin
+    ? `${webOrigin}/dashboard/settings?gmail=success`
+    : "kharcha://oauth?gmail=success";
+  const errorRedirect = webOrigin
+    ? `${webOrigin}/dashboard/settings?gmail=error`
+    : "kharcha://oauth?gmail=error";
 
   if (error || !code || !userId) {
     console.error("Gmail callback error:", error ?? "missing code or state");
-    return Response.redirect("kharcha://oauth?gmail=error", 302);
+    return Response.redirect(errorRedirect, 302);
   }
 
   try {
@@ -90,9 +100,9 @@ serve(async (req) => {
       if (insertErr) throw insertErr;
     }
 
-    return Response.redirect("kharcha://oauth?gmail=success", 302);
+    return Response.redirect(successRedirect, 302);
   } catch (e) {
     console.error("Gmail OAuth callback failed:", e);
-    return Response.redirect("kharcha://oauth?gmail=error", 302);
+    return Response.redirect(errorRedirect, 302);
   }
 });

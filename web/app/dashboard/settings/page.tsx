@@ -5,7 +5,12 @@ import ProfileForm from './ProfileForm'
 import AccountsPanel from './AccountsPanel'
 import EmailsPanel from './EmailsPanel'
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ gmail?: string }>
+}) {
+  const { gmail } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -23,6 +28,17 @@ export default async function SettingsPage() {
   return (
     <div className="p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-8" style={{ color: '#1A1A2E' }}>Settings</h1>
+
+      {gmail === 'success' && (
+        <div className="mb-6 p-4 rounded-xl border text-sm font-medium" style={{ background: '#F0FDF4', borderColor: '#86EFAC', color: '#166534' }}>
+          ✓ Gmail connected successfully! Click <strong>Sync Now</strong> to import your bank emails.
+        </div>
+      )}
+      {gmail === 'error' && (
+        <div className="mb-6 p-4 rounded-xl border text-sm font-medium" style={{ background: '#FFF0F3', borderColor: '#FECDD3', color: '#9F1239' }}>
+          ⚠ Gmail connection failed. Please try again.
+        </div>
+      )}
 
       {/* Profile */}
       <section className="bg-white rounded-2xl shadow-sm border p-6 mb-6" style={{ borderColor: '#E5E7EB' }}>

@@ -33,6 +33,19 @@ export default async function ExpensesPage({
   const list = expenses ?? []
   const total = list.reduce((s, e) => s + e.amount, 0)
 
+  // Group by expense_date
+  const groups: { dateKey: string; label: string; items: typeof list }[] = []
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+  for (const exp of list) {
+    const key = exp.expense_date
+    let label = key === today ? 'Today' : key === yesterday ? 'Yesterday'
+      : new Date(key).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long' })
+    const last = groups[groups.length - 1]
+    if (last && last.dateKey === key) last.items.push(exp)
+    else groups.push({ dateKey: key, label, items: [exp] })
+  }
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -88,40 +101,51 @@ export default async function ExpensesPage({
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
-          {list.map((exp, i) => {
-            const cat = CATEGORY_MAP[exp.category]
-            return (
-              <Link key={exp.id} href={`/dashboard/expenses/${exp.id}`}
-                className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t' : ''}`}
-                style={{ borderColor: '#F8F9FA' }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: (cat?.color ?? '#E94560') + '22' }}>
-                  {cat?.icon ?? '📦'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{exp.merchant_name}</p>
-                  <p className="text-xs" style={{ color: '#877273' }}>
-                    {cat?.name ?? exp.category} · {formatDateShort(exp.expense_date)}
-                  </p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold" style={{ color: '#E94560' }}>
-                    {formatCurrency(exp.amount, exp.currency)}
-                  </p>
-                  <span className="text-xs" style={{
-                    color: exp.match_status === 'matched' || exp.match_status === 'manual'
-                      ? '#00955F' : '#877273'
-                  }}>
-                    {exp.match_status === 'cash_only' ? '💵 cash'
-                      : exp.match_status === 'matched' || exp.match_status === 'manual' ? '✓ matched'
-                      : exp.match_status === 'suggested' ? '~ suggested'
-                      : 'unmatched'}
-                  </span>
-                </div>
-              </Link>
-            )
-          })}
+        <div className="space-y-4">
+          {groups.map(group => (
+            <div key={group.dateKey}>
+              <div className="flex items-center gap-3 mb-2 px-1">
+                <span className="text-xs font-semibold" style={{ color: '#877273' }}>{group.label}</span>
+                <div className="flex-1 h-px" style={{ background: '#E5E7EB' }} />
+                <span className="text-xs" style={{ color: '#877273' }}>
+                  {formatCurrency(group.items.reduce((s, e) => s + e.amount, 0))}
+                </span>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
+                {group.items.map((exp, i) => {
+                  const cat = CATEGORY_MAP[exp.category]
+                  return (
+                    <Link key={exp.id} href={`/dashboard/expenses/${exp.id}`}
+                      className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t' : ''}`}
+                      style={{ borderColor: '#F8F9FA' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        style={{ background: (cat?.color ?? '#E94560') + '22' }}>
+                        {cat?.icon ?? '📦'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: '#1A1A2E' }}>{exp.merchant_name}</p>
+                        <p className="text-xs" style={{ color: '#877273' }}>{cat?.name ?? exp.category}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold" style={{ color: '#E94560' }}>
+                          {formatCurrency(exp.amount, exp.currency)}
+                        </p>
+                        <span className="text-xs" style={{
+                          color: exp.match_status === 'matched' || exp.match_status === 'manual'
+                            ? '#00955F' : '#877273'
+                        }}>
+                          {exp.match_status === 'cash_only' ? '💵 cash'
+                            : exp.match_status === 'matched' || exp.match_status === 'manual' ? '✓ matched'
+                            : exp.match_status === 'suggested' ? '~ suggested'
+                            : 'unmatched'}
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

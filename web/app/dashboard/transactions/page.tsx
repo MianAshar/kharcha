@@ -42,6 +42,19 @@ export default async function TransactionsPage({
   const totalDebit = list.filter(t => t.transaction_type === 'debit').reduce((s, t) => s + t.amount, 0)
   const totalCredit = list.filter(t => t.transaction_type === 'credit').reduce((s, t) => s + t.amount, 0)
 
+  // Group by calendar date
+  const todayStr = new Date().toISOString().split('T')[0]
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+  const groups: { dateKey: string; label: string; items: typeof list }[] = []
+  for (const tx of list) {
+    const key = tx.transaction_date.split('T')[0]
+    const label = key === todayStr ? 'Today' : key === yesterdayStr ? 'Yesterday'
+      : new Date(key).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long' })
+    const last = groups[groups.length - 1]
+    if (last && last.dateKey === key) last.items.push(tx)
+    else groups.push({ dateKey: key, label, items: [tx] })
+  }
+
   // Month navigation
   const prevMonth = new Date(y, m - 2, 1)
   const nextMonth = new Date(y, m, 1)
@@ -119,41 +132,53 @@ export default async function TransactionsPage({
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
-          {list.map((tx, i) => {
-            const isDebit = tx.transaction_type === 'debit'
-            const isMatched = !!tx.matched_expense_id
-            return (
-              <Link key={tx.id} href={`/dashboard/transactions/${tx.id}`}
-                className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t' : ''}`}
-                style={{ borderColor: '#F8F9FA' }}>
-                {/* Bank initials */}
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
-                  style={{ background: '#1A1A2E' }}>
-                  {tx.bank_name?.slice(0, 2).toUpperCase() ?? '??'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
-                    {tx.merchant_hint ?? tx.bank_name}
-                    {tx.account_last4 && <span className="text-xs ml-1.5" style={{ color: '#877273' }}>···{tx.account_last4}</span>}
-                  </p>
-                  <p className="text-xs" style={{ color: '#877273' }}>
-                    {formatDateTime(tx.transaction_date)}
-                    {' · '}
-                    <span className="capitalize">{tx.source}</span>
-                  </p>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-sm font-bold" style={{ color: isDebit ? '#E94560' : '#00955F' }}>
-                    {isDebit ? '-' : '+'}{formatCurrency(tx.amount, tx.currency)}
-                  </p>
-                  <span className="text-xs" style={{ color: isMatched ? '#00955F' : '#877273' }}>
-                    {isMatched ? '✓ matched' : 'unmatched'}
-                  </span>
-                </div>
-              </Link>
-            )
-          })}
+        <div className="space-y-4">
+          {groups.map(group => (
+            <div key={group.dateKey}>
+              <div className="flex items-center gap-3 mb-2 px-1">
+                <span className="text-xs font-semibold" style={{ color: '#877273' }}>{group.label}</span>
+                <div className="flex-1 h-px" style={{ background: '#E5E7EB' }} />
+                <span className="text-xs" style={{ color: '#877273' }}>
+                  {group.items.length} txn{group.items.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
+                {group.items.map((tx, i) => {
+                  const isDebit = tx.transaction_type === 'debit'
+                  const isMatched = !!tx.matched_expense_id
+                  return (
+                    <Link key={tx.id} href={`/dashboard/transactions/${tx.id}`}
+                      className={`flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors ${i > 0 ? 'border-t' : ''}`}
+                      style={{ borderColor: '#F8F9FA' }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
+                        style={{ background: '#1A1A2E' }}>
+                        {tx.bank_name?.slice(0, 2).toUpperCase() ?? '??'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
+                          {tx.merchant_hint ?? tx.bank_name}
+                          {tx.account_last4 && <span className="text-xs ml-1.5" style={{ color: '#877273' }}>···{tx.account_last4}</span>}
+                        </p>
+                        <p className="text-xs" style={{ color: '#877273' }}>
+                          {new Date(tx.transaction_date).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                          {' · '}
+                          <span className="capitalize">{tx.source}</span>
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold" style={{ color: isDebit ? '#E94560' : '#00955F' }}>
+                          {isDebit ? '-' : '+'}{formatCurrency(tx.amount, tx.currency)}
+                        </p>
+                        <span className="text-xs" style={{ color: isMatched ? '#00955F' : '#877273' }}>
+                          {isMatched ? '✓ matched' : 'unmatched'}
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -10,6 +10,25 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
   const supabase = createClient()
   const [toggling, setToggling] = useState<string | null>(null)
   const [disconnecting, setDisconnecting] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [syncResult, setSyncResult] = useState<string | null>(null)
+
+  async function handleSync() {
+    setSyncing(true)
+    setSyncResult(null)
+    try {
+      const { error } = await supabase.functions.invoke('parse-bank-email', {
+        body: { user_id: userId },
+      })
+      if (error) throw error
+      setSyncResult('✓ Sync complete — refresh to see new transactions')
+      router.refresh()
+    } catch (e: unknown) {
+      setSyncResult('⚠ Sync failed: ' + (e instanceof Error ? e.message : 'unknown error'))
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   async function connectGmail() {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -81,7 +100,13 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
         </div>
       )}
 
-      <div className="flex gap-2">
+      {syncResult && (
+        <p className="text-xs mb-3 px-1" style={{ color: syncResult.startsWith('✓') ? '#00955F' : '#E94560' }}>
+          {syncResult}
+        </p>
+      )}
+
+      <div className="flex gap-2 flex-wrap">
         <button onClick={connectGmail}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition hover:bg-gray-50"
           style={{ borderColor: '#E5E7EB', color: '#1A1A2E' }}>
@@ -93,6 +118,21 @@ export default function EmailsPanel({ emails, userId }: { emails: ConnectedEmail
           </svg>
           Connect Gmail
         </button>
+
+        {emails.some(e => e.is_active) && (
+          <button onClick={handleSync} disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            style={{ background: '#E94560' }}>
+            {syncing ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Syncing…
+              </>
+            ) : (
+              <>🔄 Sync Now</>
+            )}
+          </button>
+        )}
       </div>
     </div>
   )

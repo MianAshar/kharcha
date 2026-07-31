@@ -68,6 +68,8 @@ export interface BankTransaction {
   reference_number: string | null;
   matched_expense_id: string | null;
   category: string | null;
+  converted_amount: number | null;
+  conversion_rate: number | null;
   created_at: string;
 }
 

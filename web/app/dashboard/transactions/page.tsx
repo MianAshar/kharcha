@@ -40,8 +40,8 @@ export default async function TransactionsPage({
     .eq('user_id', user.id)
   const banks = [...new Set((allTx ?? []).map(t => t.bank_name).filter(Boolean))]
 
-  const totalDebit = list.filter(t => t.transaction_type === 'debit').reduce((s, t) => s + t.amount, 0)
-  const totalCredit = list.filter(t => t.transaction_type === 'credit').reduce((s, t) => s + t.amount, 0)
+  const totalDebit = list.filter(t => t.transaction_type === 'debit').reduce((s, t) => s + (t.converted_amount ?? t.amount), 0)
+  const totalCredit = list.filter(t => t.transaction_type === 'credit').reduce((s, t) => s + (t.converted_amount ?? t.amount), 0)
 
   // Group by calendar date
   const todayStr = new Date().toISOString().split('T')[0]

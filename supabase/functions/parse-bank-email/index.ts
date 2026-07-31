@@ -425,6 +425,30 @@ category rules — pick the best fit from the allowed values:
   }
 }
 
+// ── Currency conversion ───────────────────────────────────────────────────────
+// Uses the fawazahmed0 currency API (free, no key, historical by date, has PKR).
+// Primary: jsdelivr CDN  Fallback: Cloudflare Pages mirror
+
+async function fetchConversionRate(fromCurrency: string, dateStr: string): Promise<number | null> {
+  const base = fromCurrency.toLowerCase();
+  const urls = [
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${dateStr}/v1/currencies/${base}.json`,
+    `https://latest.currency-api.pages.dev/v1/currencies/${base}.json`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const rate = data[base]?.pkr;
+      if (typeof rate === 'number' && rate > 0) return rate;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 // ── Deduplication ─────────────────────────────────────────────────────────────
 
 async function checkDuplicate(
@@ -560,6 +584,18 @@ serve(async (req) => {
             continue;
           }
 
+          // Fetch PKR conversion rate for non-PKR transactions
+          const txCurrency = (parsed.currency ?? 'PKR').toUpperCase();
+          let convertedAmount: number | null = null;
+          let conversionRate: number | null = null;
+          if (txCurrency !== 'PKR') {
+            const txDateStr = (parsed.transaction_date ?? msg.date).split('T')[0];
+            conversionRate = await fetchConversionRate(txCurrency, txDateStr);
+            if (conversionRate !== null) {
+              convertedAmount = Math.round(parsed.amount * conversionRate);
+            }
+          }
+
           const { data: tx, error: insertErr } = await supabase
             .from('bank_transactions')
             .insert({
@@ -570,13 +606,15 @@ serve(async (req) => {
               bank_name: parsed.bank_name ?? 'Unknown',
               transaction_type: parsed.transaction_type ?? 'debit',
               amount: parsed.amount,
-              currency: parsed.currency ?? 'PKR',
+              currency: txCurrency,
               account_last4: parsed.account_last4 ?? null,
               transaction_date: parsed.transaction_date ?? msg.date,
               merchant_hint: parsed.merchant_hint ?? null,
               balance_after: parsed.balance_after ?? null,
               reference_number: parsed.reference_number ?? null,
               category: parsed.category ?? 'other',
+              converted_amount: convertedAmount,
+              conversion_rate: conversionRate,
             })
             .select('id')
             .single();

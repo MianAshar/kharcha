@@ -193,11 +193,17 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-bold" style={{ color: isDebitRow ? '#E94560' : '#00955F' }}>
-                        {isDebitRow ? '-' : '+'}{formatCurrency(tx.amount, tx.currency)}
+                        {isDebitRow ? '-' : '+'}{formatCurrency(tx.converted_amount ?? tx.amount, tx.converted_amount ? 'PKR' : tx.currency)}
                       </p>
-                      <span className="text-xs" style={{ color: isMatched ? '#00955F' : '#877273' }}>
-                        {isMatched ? '✓ matched' : 'unmatched'}
-                      </span>
+                      {tx.converted_amount ? (
+                        <p className="text-xs" style={{ color: '#877273' }}>
+                          {tx.currency} {tx.amount.toLocaleString()}
+                        </p>
+                      ) : (
+                        <span className="text-xs" style={{ color: isMatched ? '#00955F' : '#877273' }}>
+                          {isMatched ? '✓ matched' : 'unmatched'}
+                        </span>
+                      )}
                     </div>
                   </button>
                 )
@@ -257,8 +263,13 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold" style={{ color: isDebit ? '#E94560' : '#00955F' }}>
-                  {isDebit ? '-' : '+'}{formatCurrency(selectedTx.amount, selectedTx.currency)}
+                  {isDebit ? '-' : '+'}{formatCurrency(selectedTx.converted_amount ?? selectedTx.amount, selectedTx.converted_amount ? 'PKR' : selectedTx.currency)}
                 </p>
+                {selectedTx.converted_amount && (
+                  <p className="text-xs mt-0.5" style={{ color: '#877273' }}>
+                    {selectedTx.currency} {selectedTx.amount.toLocaleString()}
+                  </p>
+                )}
                 <span
                   className="text-xs font-medium px-2 py-0.5 rounded-full capitalize"
                   style={{
@@ -299,6 +310,14 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                 <div className="p-3 rounded-xl col-span-2" style={{ background: '#F8F9FA' }}>
                   <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Reference</p>
                   <p className="text-sm font-mono" style={{ color: '#1A1A2E' }}>{selectedTx.reference_number}</p>
+                </div>
+              )}
+              {selectedTx.conversion_rate && (
+                <div className="p-3 rounded-xl col-span-2" style={{ background: '#FFF5F7' }}>
+                  <p className="text-xs mb-0.5" style={{ color: '#877273' }}>Exchange Rate</p>
+                  <p className="text-sm font-medium" style={{ color: '#1A1A2E' }}>
+                    1 {selectedTx.currency} = {selectedTx.conversion_rate.toLocaleString('en-PK', { maximumFractionDigits: 2 })} PKR
+                  </p>
                 </div>
               )}
             </div>

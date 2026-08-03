@@ -70,6 +70,7 @@ export interface BankTransaction {
   category: string | null;
   converted_amount: number | null;
   conversion_rate: number | null;
+  notes: string | null;
   created_at: string;
 }
 

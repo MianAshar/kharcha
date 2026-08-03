@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { formatCurrency, formatDateTime } from '@/lib/format'
 import MatchTransactionPanel from './MatchTransactionPanel'
 import UnmatchButton from './UnmatchButton'
+import NotesEditor from './NotesEditor'
 
 export default async function TransactionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -119,6 +120,8 @@ export default async function TransactionDetailPage({ params }: { params: Promis
           expenses={unmatchedExpenses ?? []}
         />
       )}
+
+      <NotesEditor transactionId={tx.id} initialNotes={tx.notes} />
 
       {/* Raw message */}
       <div className="bg-white rounded-2xl shadow-sm border p-5" style={{ borderColor: '#E5E7EB' }}>

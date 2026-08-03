@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatCurrency, formatDateTime, formatDateShort } from '@/lib/format'
 import { CATEGORY_MAP } from '@/lib/constants'
 import type { BankTransaction, Expense } from '@/types'
+import NotesEditor from './[id]/NotesEditor'
 
 interface Group {
   dateKey: string
@@ -37,6 +38,10 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
   const [unmatchLoading, setUnmatchLoading] = useState(false)
   const [matchOpen, setMatchOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
+  const [noteDraft, setNoteDraft] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
+  const [noteOverrides, setNoteOverrides] = useState<Record<string, string | null>>({})
 
   const filteredGroups = search.trim()
     ? groups
@@ -118,6 +123,24 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
 
   const isDebit = selectedTx?.transaction_type === 'debit'
 
+  function startEditNote(tx: BankTransaction) {
+    setEditingNoteId(tx.id)
+    const current = tx.id in noteOverrides ? noteOverrides[tx.id] : tx.notes
+    setNoteDraft(current ?? '')
+  }
+
+  async function handleSaveNote(txId: string) {
+    setNoteSaving(true)
+    const trimmed = noteDraft.trim()
+    const { error } = await supabase.from('bank_transactions').update({ notes: trimmed || null }).eq('id', txId)
+    if (!error) {
+      setNoteOverrides(prev => ({ ...prev, [txId]: trimmed || null }))
+      setEditingNoteId(null)
+      router.refresh()
+    }
+    setNoteSaving(false)
+  }
+
   return (
     <>
       {/* Search */}
@@ -162,11 +185,20 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                 const isDebitRow = tx.transaction_type === 'debit'
                 const isMatched = !!tx.matched_expense_id
                 const isSelected = selectedTx?.id === tx.id
+                const displayNotes = editingNoteId === tx.id
+                  ? null
+                  : (noteOverrides[tx.id] !== undefined ? noteOverrides[tx.id] : tx.notes)
+                const isEditingNote = editingNoteId === tx.id
                 return (
-                  <button
+                  <div
                     key={tx.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedTx(isSelected ? null : tx)}
-                    className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors ${i > 0 ? 'border-t' : ''}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') setSelectedTx(isSelected ? null : tx)
+                    }}
+                    className={`group w-full flex items-center gap-4 px-5 py-4 text-left transition-colors cursor-pointer ${i > 0 ? 'border-t' : ''}`}
                     style={{
                       borderColor: '#F8F9FA',
                       background: isSelected ? '#FFF5F7' : undefined,
@@ -190,6 +222,50 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                         {' · '}
                         <span className="capitalize">{tx.source}</span>
                       </p>
+                      {isEditingNote ? (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 flex items-center gap-1.5"
+                        >
+                          <input
+                            autoFocus
+                            value={noteDraft}
+                            onChange={(e) => setNoteDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              e.stopPropagation()
+                              if (e.key === 'Enter') { e.preventDefault(); handleSaveNote(tx.id) }
+                              if (e.key === 'Escape') setEditingNoteId(null)
+                            }}
+                            placeholder="Add a note..."
+                            className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1 outline-none border"
+                            style={{ borderColor: '#E5E7EB', color: '#1A1A2E' }}
+                          />
+                          <button
+                            onClick={() => handleSaveNote(tx.id)}
+                            disabled={noteSaving}
+                            className="text-xs font-medium px-2 py-1 rounded-lg flex-shrink-0 disabled:opacity-50"
+                            style={{ background: '#E94560', color: '#fff' }}
+                          >
+                            {noteSaving ? '…' : 'Save'}
+                          </button>
+                        </div>
+                      ) : displayNotes ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditNote(tx) }}
+                          className="text-xs mt-0.5 italic truncate text-left hover:underline"
+                          style={{ color: '#877273' }}
+                        >
+                          📝 {displayNotes}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditNote(tx) }}
+                          className="text-xs mt-0.5 font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ color: '#B0B0B8' }}
+                        >
+                          + Add note
+                        </button>
+                      )}
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-sm font-bold" style={{ color: isDebitRow ? '#E94560' : '#00955F' }}>
@@ -205,7 +281,7 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
                 )
               })}
             </div>
@@ -401,6 +477,14 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
                 )}
               </div>
             ) : null}
+
+            {/* Notes */}
+            <NotesEditor
+              key={selectedTx.id}
+              transactionId={selectedTx.id}
+              initialNotes={selectedTx.notes}
+              containerClassName="rounded-2xl border p-4"
+            />
 
             {/* Raw message */}
             <div className="rounded-2xl border p-4" style={{ borderColor: '#E5E7EB' }}>

@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -101,6 +103,9 @@ export default function TransactionDetailScreen() {
   const [tx, setTx] = useState<BankTransaction | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFullMessage, setShowFullMessage] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase
@@ -110,9 +115,31 @@ export default function TransactionDetailScreen() {
       .single()
       .then(({ data }) => {
         setTx(data as BankTransaction);
+        setNotes((data as BankTransaction | null)?.notes ?? '');
         setLoading(false);
       });
   }, [transactionId]);
+
+  const notesDirty = tx != null && notes !== (tx.notes ?? '');
+
+  const handleSaveNotes = async () => {
+    if (!tx || !notesDirty) return;
+    Keyboard.dismiss();
+    setSavingNotes(true);
+    setNotesError(null);
+    const trimmed = notes.trim();
+    const { error } = await supabase
+      .from('bank_transactions')
+      .update({ notes: trimmed || null })
+      .eq('id', tx.id);
+    if (error) {
+      setNotesError(error.message);
+    } else {
+      setNotes(trimmed);
+      setTx({ ...tx, notes: trimmed || null });
+    }
+    setSavingNotes(false);
+  };
 
   if (loading) {
     return (
@@ -232,6 +259,35 @@ export default function TransactionDetailScreen() {
             </View>
           </View>
         )}
+
+        {/* Notes */}
+        <View style={styles.messageSection}>
+          <View style={styles.notesHeaderRow}>
+            <Text style={styles.messageSectionTitle}>📝 Notes</Text>
+            <TouchableOpacity
+              onPress={handleSaveNotes}
+              disabled={!notesDirty || savingNotes}
+              style={[styles.notesSaveBtn, (!notesDirty || savingNotes) && styles.notesSaveBtnDisabled]}
+            >
+              <Text style={styles.notesSaveBtnText}>{savingNotes ? 'Saving…' : 'Save'}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.messageCard}>
+            <TextInput
+              style={styles.notesInput}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Add a note..."
+              placeholderTextColor={COLORS.muted}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+            {notesError && (
+              <Text style={styles.notesErrorText}>Failed to save: {notesError}</Text>
+            )}
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -316,4 +372,23 @@ const styles = StyleSheet.create({
   },
   showMoreBtn: { marginTop: 10, alignSelf: 'flex-start' },
   showMoreText: { fontSize: 13, fontWeight: '700', color: COLORS.primary },
+
+  // Notes
+  notesHeaderRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  notesSaveBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5,
+  },
+  notesSaveBtnDisabled: { opacity: 0.4 },
+  notesSaveBtnText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  notesInput: {
+    fontSize: 13, color: COLORS.onSurface,
+    lineHeight: 20, fontFamily: 'System',
+    minHeight: 72, padding: 0,
+  },
+  notesErrorText: {
+    fontSize: 11, color: COLORS.error, marginTop: 8,
+  },
 });

@@ -70,6 +70,7 @@ export interface BankTransaction {
   reference_number: string | null;
   matched_expense_id: string | null;
   category: string | null;
+  notes: string | null;
   created_at: string;
 }
 

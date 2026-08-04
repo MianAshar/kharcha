@@ -28,6 +28,29 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ── Date normalization ───────────────────────────────────────────────────────
+// Pakistani banks report timestamps in Pakistan Standard Time (UTC+5, no DST).
+// GPT is asked for a timezone-aware ISO8601 string, but LLM output isn't
+// guaranteed — a bare "2026-08-03" or "2026-08-03T00:00:00" (no offset) would
+// otherwise be stored as UTC midnight, which displays as 5:00 AM in Pakistan.
+// Treat any offset-less value as PKT rather than trusting Postgres's UTC default,
+// and fall back to a known-good timestamp when the AI's value can't be trusted.
+const PKT_OFFSET = '+05:00';
+
+function normalizeTransactionDate(raw: string | null | undefined, fallbackISO: string): string {
+  if (!raw) return fallbackISO;
+  const trimmed = raw.trim();
+
+  // Date-only ("2026-08-03") — no time info to normalize, don't guess midnight.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return fallbackISO;
+
+  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/.test(trimmed);
+  const withOffset = hasOffset ? trimmed : `${trimmed}${PKT_OFFSET}`;
+
+  const parsed = new Date(withOffset);
+  return isNaN(parsed.getTime()) ? fallbackISO : parsed.toISOString();
+}
+
 // ── HTML entity decoder ───────────────────────────────────────────────────────
 
 function decodeHtmlEntities(text: string): string {
@@ -265,7 +288,13 @@ async function fetchGmailMessages(
     const from = headers.find((h) => h.name === 'From')?.value ?? '';
     const dateHeader = headers.find((h) => h.name === 'Date')?.value ?? '';
     const body = extractGmailBody(msg.payload ?? {});
-    const date = dateHeader || new Date(parseInt(msg.internalDate ?? '0')).toISOString();
+    // dateHeader is RFC 2822 (e.g. "Thu, 03 Aug 2026 05:32:00 +0500"), not ISO8601 —
+    // normalize to ISO so downstream code (and the insert fallback) can trust it.
+    const parsedHeaderDate = dateHeader ? new Date(dateHeader) : null;
+    const date =
+      parsedHeaderDate && !isNaN(parsedHeaderDate.getTime())
+        ? parsedHeaderDate.toISOString()
+        : new Date(parseInt(msg.internalDate ?? '0')).toISOString();
 
     messages.push({ id: msgId, body, subject, from, date });
   }
@@ -372,7 +401,7 @@ async function parseEmailWithAI(
   "reference_number": "string | null",
   "category": "one of: food | transport | groceries | shopping | utilities | health | entertainment | education | fuel | rent | mobile | travel | clothing | coffee | other"
 }
-Today is ${todayISO}. Use ISO8601 for dates. If no year, assume current year.
+Today is ${todayISO}. transaction_date MUST be a full ISO8601 timestamp INCLUDING a UTC offset — e.g. "2026-08-03T14:32:00+05:00". Pakistani banks report times in Pakistan Standard Time (UTC+5). If no year, assume current year. If you cannot determine the time of day from the message (only a date is mentioned), return null for transaction_date rather than guessing midnight.
 
 transaction_type rules (from the USER's perspective, not the bank's):
 - "debit" = money LEAVING the user: purchases, withdrawals, fees, credit card charges/bills
@@ -573,6 +602,9 @@ serve(async (req) => {
 
           if (!parsed?.is_transaction || !parsed.amount) continue;
 
+          const transactionDate = normalizeTransactionDate(parsed.transaction_date, msg.date);
+          parsed.transaction_date = transactionDate;
+
           const { dup, existingId } = await checkDuplicate(supabase, user_id, parsed);
 
           if (dup && existingId) {
@@ -589,7 +621,7 @@ serve(async (req) => {
           let convertedAmount: number | null = null;
           let conversionRate: number | null = null;
           if (txCurrency !== 'PKR') {
-            const txDateStr = (parsed.transaction_date ?? msg.date).split('T')[0];
+            const txDateStr = transactionDate.split('T')[0];
             conversionRate = await fetchConversionRate(txCurrency, txDateStr);
             if (conversionRate !== null) {
               convertedAmount = Math.round(parsed.amount * conversionRate);
@@ -608,7 +640,7 @@ serve(async (req) => {
               amount: parsed.amount,
               currency: txCurrency,
               account_last4: parsed.account_last4 ?? null,
-              transaction_date: parsed.transaction_date ?? msg.date,
+              transaction_date: transactionDate,
               merchant_hint: parsed.merchant_hint ?? null,
               balance_after: parsed.balance_after ?? null,
               reference_number: parsed.reference_number ?? null,

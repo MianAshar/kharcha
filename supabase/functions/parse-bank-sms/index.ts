@@ -6,6 +6,29 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ── Date normalization ───────────────────────────────────────────────────────
+// Pakistani banks report timestamps in Pakistan Standard Time (UTC+5, no DST).
+// GPT is asked for a timezone-aware ISO8601 string, but LLM output isn't
+// guaranteed — a bare "2026-08-03" or "2026-08-03T00:00:00" (no offset) would
+// otherwise be stored as UTC midnight, which displays as 5:00 AM in Pakistan.
+// Treat any offset-less value as PKT rather than trusting Postgres's UTC default,
+// and fall back to a known-good timestamp (SMS receipt time) when untrustworthy.
+const PKT_OFFSET = '+05:00';
+
+function normalizeTransactionDate(raw: string | null | undefined, fallbackISO: string): string {
+  if (!raw) return fallbackISO;
+  const trimmed = raw.trim();
+
+  // Date-only ("2026-08-03") — no time info to normalize, don't guess midnight.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return fallbackISO;
+
+  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/.test(trimmed);
+  const withOffset = hasOffset ? trimmed : `${trimmed}${PKT_OFFSET}`;
+
+  const parsed = new Date(withOffset);
+  return isNaN(parsed.getTime()) ? fallbackISO : parsed.toISOString();
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
@@ -24,6 +47,9 @@ serve(async (req) => {
         { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       );
     }
+
+    const receivedAt = new Date().toISOString();
+    const todayISO = receivedAt.slice(0, 10);
 
     // Ask GPT-4o-mini to parse the SMS
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -50,7 +76,9 @@ serve(async (req) => {
   "merchant_hint": "string | null",
   "balance_after": number | null,
   "reference_number": "string | null"
-}`,
+}
+
+Today is ${todayISO}. transaction_date MUST be a full ISO8601 timestamp INCLUDING a UTC offset — e.g. "2026-08-03T14:32:00+05:00". Pakistani banks report times in Pakistan Standard Time (UTC+5). If no year, assume current year. If you cannot determine the time of day from the message (only a date is mentioned), return null for transaction_date rather than guessing midnight.`,
           },
           { role: 'user', content: raw_message },
         ],
@@ -75,12 +103,14 @@ serve(async (req) => {
       );
     }
 
+    const transactionDate = normalizeTransactionDate(parsed.transaction_date, receivedAt);
+
     // Deduplication check: same amount ±2%, same bank, same account_last4, within 10 min
     const windowStart = new Date(
-      new Date(parsed.transaction_date || Date.now()).getTime() - 10 * 60 * 1000
+      new Date(transactionDate).getTime() - 10 * 60 * 1000
     ).toISOString();
     const windowEnd = new Date(
-      new Date(parsed.transaction_date || Date.now()).getTime() + 10 * 60 * 1000
+      new Date(transactionDate).getTime() + 10 * 60 * 1000
     ).toISOString();
 
     const { data: existing } = await supabase
@@ -121,7 +151,7 @@ serve(async (req) => {
         amount: parsed.amount ?? 0,
         currency: parsed.currency ?? 'PKR',
         account_last4: parsed.account_last4,
-        transaction_date: parsed.transaction_date ?? new Date().toISOString(),
+        transaction_date: transactionDate,
         merchant_hint: parsed.merchant_hint,
         balance_after: parsed.balance_after,
         reference_number: parsed.reference_number,

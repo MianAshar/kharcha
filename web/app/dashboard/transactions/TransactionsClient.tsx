@@ -28,7 +28,7 @@ interface DrawerData {
   }[]
 }
 
-export default function TransactionsClient({ groups }: { groups: Group[] }) {
+export default function TransactionsClient({ groups, month }: { groups: Group[]; month: string }) {
   const router = useRouter()
   const supabase = createClient()
   const [selectedTx, setSelectedTx] = useState<BankTransaction | null>(null)
@@ -42,6 +42,23 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
   const [noteDraft, setNoteDraft] = useState('')
   const [noteSaving, setNoteSaving] = useState(false)
   const [noteOverrides, setNoteOverrides] = useState<Record<string, string | null>>({})
+  const [clearing, setClearing] = useState(false)
+
+  async function handleClearMonth() {
+    if (!confirm(`Delete ALL transactions for ${month}? This cannot be undone.`)) return
+    setClearing(true)
+    const [y, m] = month.split('-').map(Number)
+    const start = new Date(y, m - 1, 1).toISOString()
+    const end = new Date(y, m, 0, 23, 59, 59).toISOString()
+    await supabase
+      .from('bank_transactions')
+      .delete()
+      .gte('transaction_date', start)
+      .lte('transaction_date', end)
+    setClearing(false)
+    setSelectedTx(null)
+    router.refresh()
+  }
 
   const filteredGroups = search.trim()
     ? groups
@@ -143,6 +160,18 @@ export default function TransactionsClient({ groups }: { groups: Group[] }) {
 
   return (
     <>
+      {/* Search + Clear */}
+      <div className="flex gap-3 mb-6 items-center">
+        <button
+          onClick={handleClearMonth}
+          disabled={clearing || groups.length === 0}
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition hover:bg-red-50 hover:border-red-200 hover:text-red-600 disabled:opacity-40"
+          style={{ borderColor: '#E5E7EB', color: '#877273' }}
+        >
+          {clearing ? '…' : '🗑 Clear Month'}
+        </button>
+      </div>
+
       {/* Search */}
       <div className="relative mb-6">
         <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#877273' }}>🔍</span>

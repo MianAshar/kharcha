@@ -133,7 +133,7 @@ export default async function TransactionsPage({
           </Link>
         </div>
       ) : (
-        <TransactionsClient groups={groups} />
+        <TransactionsClient groups={groups} month={month} />
       )}
     </div>
   )

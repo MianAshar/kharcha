@@ -485,9 +485,14 @@ async function checkDuplicate(
   userId: string,
   parsed: ParsedTransaction
 ): Promise<{ dup: boolean; existingId: string | null }> {
+  // Use the full calendar day as the deduplication window.
+  // A 10-minute window caused duplicates when the first import extracted only a date
+  // (stored as 00:00:00 UTC) and a re-import extracted the actual time (e.g. 16:27:00 UTC).
   const txDate = new Date(parsed.transaction_date || Date.now());
-  const windowStart = new Date(txDate.getTime() - 10 * 60 * 1000).toISOString();
-  const windowEnd = new Date(txDate.getTime() + 10 * 60 * 1000).toISOString();
+  const dayStart = new Date(txDate);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date(txDate);
+  dayEnd.setUTCHours(23, 59, 59, 999);
 
   const { data } = await supabase
     .from('bank_transactions')
@@ -495,8 +500,8 @@ async function checkDuplicate(
     .eq('user_id', userId)
     .eq('bank_name', parsed.bank_name ?? '')
     .eq('account_last4', parsed.account_last4 ?? '')
-    .gte('transaction_date', windowStart)
-    .lte('transaction_date', windowEnd)
+    .gte('transaction_date', dayStart.toISOString())
+    .lte('transaction_date', dayEnd.toISOString())
     .gte('amount', (parsed.amount ?? 0) * 0.98)
     .lte('amount', (parsed.amount ?? 0) * 1.02)
     .maybeSingle();

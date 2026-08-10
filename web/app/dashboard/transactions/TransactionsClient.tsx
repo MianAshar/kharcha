@@ -247,7 +247,7 @@ export default function TransactionsClient({ groups, month }: { groups: Group[];
                         )}
                       </p>
                       <p className="text-xs" style={{ color: '#877273' }}>
-                        {new Date(tx.transaction_date).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(tx.transaction_date).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Karachi' })}
                         {' · '}
                         <span className="capitalize">{tx.source}</span>
                       </p>

@@ -41,13 +41,14 @@ function normalizeTransactionDate(raw: string | null | undefined, fallbackISO: s
   if (!raw) return fallbackISO;
   const trimmed = raw.trim();
 
-  // Date-only ("2026-08-03") — no time info to normalize, don't guess midnight.
+  // Date-only ("2026-08-03") — no time info, use the email's received timestamp instead.
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return fallbackISO;
 
-  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/.test(trimmed);
-  const withOffset = hasOffset ? trimmed : `${trimmed}${PKT_OFFSET}`;
-
-  const parsed = new Date(withOffset);
+  // Always strip any offset the AI provides and treat the extracted time as PKT.
+  // Pakistani banks always display transaction times in Pakistan Standard Time (UTC+5).
+  // If the AI returns "+00:00" it is wrong — the time in the email body is PKT, not UTC.
+  const withoutOffset = trimmed.replace(/(Z|[+-]\d{2}:?\d{2})$/, '');
+  const parsed = new Date(`${withoutOffset}${PKT_OFFSET}`);
   return isNaN(parsed.getTime()) ? fallbackISO : parsed.toISOString();
 }
 

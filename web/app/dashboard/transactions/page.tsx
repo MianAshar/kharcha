@@ -43,14 +43,17 @@ export default async function TransactionsPage({
   const totalDebit = list.filter(t => t.transaction_type === 'debit').reduce((s, t) => s + (t.converted_amount ?? t.amount), 0)
   const totalCredit = list.filter(t => t.transaction_type === 'credit').reduce((s, t) => s + (t.converted_amount ?? t.amount), 0)
 
-  // Group by calendar date
-  const todayStr = new Date().toISOString().split('T')[0]
-  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+  // Group by calendar date in Pakistan Standard Time (UTC+5)
+  function toPKTDate(date: Date): string {
+    return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }) // YYYY-MM-DD
+  }
+  const todayStr = toPKTDate(new Date())
+  const yesterdayStr = toPKTDate(new Date(Date.now() - 86400000))
   const groups: { dateKey: string; label: string; items: typeof list }[] = []
   for (const tx of list) {
-    const key = tx.transaction_date.split('T')[0]
+    const key = toPKTDate(new Date(tx.transaction_date))
     const label = key === todayStr ? 'Today' : key === yesterdayStr ? 'Yesterday'
-      : new Date(key).toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long' })
+      : new Date(key + 'T00:00:00').toLocaleDateString('en-PK', { weekday: 'long', day: 'numeric', month: 'long' })
     const last = groups[groups.length - 1]
     if (last && last.dateKey === key) last.items.push(tx)
     else groups.push({ dateKey: key, label, items: [tx] })
